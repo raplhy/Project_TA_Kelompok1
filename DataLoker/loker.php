@@ -38,7 +38,7 @@ $data = mysqli_query($koneksi, "
     INNER JOIN gedung 
         ON loker.id_gedung = gedung.id_gedung
     $where
-    ORDER BY loker.id_loker ASC
+    ORDER BY loker.nomor_loker ASC
 ");
 
 
@@ -63,19 +63,6 @@ $terisi = mysqli_num_rows(
         "SELECT id_loker FROM loker WHERE status != 'Kosong'"
     )
 );
-
-
-/* =========================================================
-   PESAN NOTIFIKASI
-   ========================================================= */
-
-$daftar_pesan = [
-    'tambah' => '✓ Data Loker berhasil ditambahkan!',
-    'edit'   => '✓ Data Loker berhasil diubah!',
-    'hapus'  => '✓ Data Loker berhasil dihapus!',
-];
-
-$pesan = $daftar_pesan[$_GET['pesan'] ?? ''] ?? null;
 
 
 /* =========================================================
@@ -419,18 +406,6 @@ $daftar_gedung_filter = mysqli_query(
 
 
 
-            <!-- PESAN -->
-
-            <?php if ($pesan): ?>
-
-                <div class="pesan">
-                    <?= $pesan ?>
-                </div>
-
-            <?php endif; ?>
-
-
-
             <!-- ================================================= -->
             <!-- TABEL -->
             <!-- ================================================= -->
@@ -688,7 +663,7 @@ $daftar_gedung_filter = mysqli_query(
                 <input
                     type="text"
                     name="nomor_loker"
-                    placeholder="Contoh: L-001"
+                    placeholder="Contoh: A001"
                     required
                 >
 

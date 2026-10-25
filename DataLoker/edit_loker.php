@@ -17,10 +17,16 @@ if (isset($_POST['edit'])) {
         $_POST['id_gedung']
     );
 
-    // Validasi gedung (hanya boleh Gedung A - D)
-    $gedung_valid = ['Gedung A', 'Gedung B', 'Gedung C', 'Gedung D'];
+    // Validasi gedung (id gedung harus ada di tabel gedung)
+    $lokasi = (int) $_POST['id_gedung'];
 
-    if (!in_array($_POST['id_gedung'], $gedung_valid, true)) {
+    $cek_gedung = mysqli_query(
+        $koneksi,
+        "SELECT id_gedung FROM gedung
+         WHERE id_gedung = $lokasi"
+    );
+
+    if (mysqli_num_rows($cek_gedung) == 0) {
 
         header("Location: loker.php");
         exit();
@@ -37,10 +43,7 @@ if (isset($_POST['edit'])) {
 
     if (mysqli_num_rows($cek) > 0) {
 
-        echo "<script>
-                alert('Nomor Loker sudah digunakan!');
-                window.location.href='loker.php';
-              </script>";
+        header("Location: loker.php?pesan=duplikat");
         exit();
 
     }

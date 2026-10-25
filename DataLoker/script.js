@@ -188,6 +188,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         toastr.error("Data Loker berhasil dihapus!", "Dihapus");
 
+    } else if (pesan === "duplikat") {
+
+        toastr.error("Kode Loker sudah digunakan!", "Gagal");
+
     }
 
     // Hilangkan ?pesan=... dari URL supaya toast
