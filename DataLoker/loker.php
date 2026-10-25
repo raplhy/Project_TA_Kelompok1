@@ -6,6 +6,27 @@ include "koneksi.php";
    DATA LOKER + DATA GEDUNG
    ========================================================= */
 
+/* Filter gedung (0 = semua gedung) */
+$filter_gedung = (int) ($_GET['gedung'] ?? 0);
+
+/* Pencarian kode loker */
+$cari = trim($_GET['cari'] ?? '');
+
+$cari_aman = mysqli_real_escape_string($koneksi, $cari);
+
+/* Gabungkan filter gedung + pencarian */
+$kondisi = [];
+
+if ($filter_gedung) {
+    $kondisi[] = "loker.id_gedung = $filter_gedung";
+}
+
+if ($cari !== '') {
+    $kondisi[] = "loker.nomor_loker LIKE '%$cari_aman%'";
+}
+
+$where = $kondisi ? "WHERE " . implode(" AND ", $kondisi) : "";
+
 $data = mysqli_query($koneksi, "
     SELECT 
         loker.id_loker,
@@ -16,6 +37,7 @@ $data = mysqli_query($koneksi, "
     FROM loker
     INNER JOIN gedung 
         ON loker.id_gedung = gedung.id_gedung
+    $where
     ORDER BY loker.id_loker ASC
 ");
 
@@ -24,7 +46,9 @@ $data = mysqli_query($koneksi, "
    STATISTIK LOKER
    ========================================================= */
 
-$total = mysqli_num_rows($data);
+$total = mysqli_num_rows(
+    mysqli_query($koneksi, "SELECT id_loker FROM loker")
+);
 
 $kosong = mysqli_num_rows(
     mysqli_query(
@@ -73,6 +97,20 @@ $daftar_gedung = mysqli_query(
    ========================================================= */
 
 $daftar_gedung_edit = mysqli_query(
+    $koneksi,
+    "
+    SELECT id_gedung, nama_gedung
+    FROM gedung
+    ORDER BY id_gedung ASC
+    "
+);
+
+
+/* =========================================================
+   DAFTAR GEDUNG UNTUK DROPDOWN FILTER
+   ========================================================= */
+
+$daftar_gedung_filter = mysqli_query(
     $koneksi,
     "
     SELECT id_gedung, nama_gedung
@@ -302,13 +340,80 @@ $daftar_gedung_edit = mysqli_query(
                 </div>
 
 
-                <button
-                    type="button"
-                    class="btn-add"
-                    onclick="bukaModalTambah()"
-                >
-                    + Tambah Loker
-                </button>
+                <div class="header-actions">
+
+                    <!-- FILTER PER GEDUNG -->
+
+                    <form method="GET" action="loker.php">
+
+                        <select
+                            name="gedung"
+                            class="filter-gedung"
+                            onchange="this.form.submit()"
+                        >
+
+                            <option value="0">
+                                Semua Gedung
+                            </option>
+
+                            <?php while (
+                                $g = mysqli_fetch_assoc(
+                                    $daftar_gedung_filter
+                                )
+                            ): ?>
+
+                                <option
+                                    value="<?= $g['id_gedung'] ?>"
+                                    <?= $filter_gedung == $g['id_gedung'] ? 'selected' : '' ?>
+                                >
+
+                                    <?= htmlspecialchars(
+                                        $g['nama_gedung']
+                                    ) ?>
+
+                                </option>
+
+                            <?php endwhile; ?>
+
+                        </select>
+
+                        <!-- PENCARIAN KODE LOKER -->
+
+                        <input
+                            type="search"
+                            name="cari"
+                            class="cari-loker"
+                            placeholder="Cari kode loker..."
+                            value="<?= htmlspecialchars($cari) ?>"
+                        >
+
+                        <button
+                            type="submit"
+                            class="btn-cari"
+                        >
+                            Cari
+                        </button>
+
+                        <?php if ($cari !== '' || $filter_gedung): ?>
+
+                            <a href="loker.php" class="btn-reset">
+                                Reset
+                            </a>
+
+                        <?php endif; ?>
+
+                    </form>
+
+
+                    <button
+                        type="button"
+                        class="btn-add"
+                        onclick="bukaModalTambah()"
+                    >
+                        + Tambah Loker
+                    </button>
+
+                </div>
 
             </div>
 
@@ -364,6 +469,16 @@ $daftar_gedung_edit = mysqli_query(
 
 
                     <tbody>
+
+                    <?php if (mysqli_num_rows($data) == 0): ?>
+
+                        <tr>
+                            <td colspan="5" class="empty-row">
+                                Tidak ada loker yang cocok.
+                            </td>
+                        </tr>
+
+                    <?php endif; ?>
 
                     <?php
 

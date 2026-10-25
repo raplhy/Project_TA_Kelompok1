@@ -1,0 +1,168 @@
+/* ==========================================
+   LOKERKU - HALAMAN ADMIN (loker.php)
+   Tema mengikuti styleAdmin.css
+========================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+body { background: #F4EFE6; color: #1E1D1B; font-size: 13px; line-height: 1.5; }
+
+
+/* ---------- LAYOUT & SIDEBAR ---------- */
+
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar { display: flex; flex-direction: column; flex-shrink: 0; width: 220px; padding: 20px 14px; background: #FAF8F5; border-right: 1px solid #E8E3D9; }
+
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid #E8E3D9; }
+.logo-icon { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: #181715; border-radius: 6px; color: #fff; font-size: 15px; font-weight: bold; }
+.logo h2 { color: #1E1D1B; font-size: 15px; }
+.logo span { color: #6E6A63; font-size: 11px; }
+
+.menu-title { margin-bottom: 8px; padding-left: 6px; color: #9E988E; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+
+.menu { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; padding: 9px 12px; border-left: 3px solid transparent; border-radius: 6px; color: #6E6A63; font-size: 13px; text-decoration: none; }
+.menu:hover { background: #EFE5D8; color: #1E1D1B; }
+.menu.active { background: #EFE5D8; border-left-color: #E04F16; color: #C85A17; font-weight: bold; }
+
+
+/* ---------- KONTEN & TOPBAR ---------- */
+
+.content { flex: 1; min-width: 0; padding: 24px 28px; }
+
+.topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid #E8E3D9; }
+.topbar .welcome { color: #6E6A63; font-size: 12px; }
+.topbar h1 { color: #1E1D1B; font-size: 20px; }
+
+.profile { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: #FAF8F5; border: 1px solid #E8E3D9; border-radius: 6px; }
+.profile-icon { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #EFE5D8; border-radius: 50%; color: #C85A17; font-size: 11px; font-weight: bold; }
+.profile strong { display: block; font-size: 12px; }
+.profile small { color: #6E6A63; font-size: 10px; }
+
+
+/* ---------- STATISTIK ---------- */
+
+.statistics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 22px; }
+
+.stat-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #fff; border: 1px solid #E8E3D9; border-radius: 8px; }
+.stat-card p { margin-bottom: 2px; color: #6E6A63; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+.stat-card h2 { color: #1E1D1B; font-size: 22px; }
+
+.stat-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; border: 1px solid transparent; border-radius: 6px; font-size: 16px; font-weight: bold; }
+.stat-icon.blue  { background: #EFE5D8; color: #C85A17; }
+.stat-icon.green { background: #FDEBD6; border-color: #E5A970; color: #B85D19; }
+.stat-icon.red   { background: #F9E2DF; border-color: #DFA69F; color: #B8473E; }
+
+
+/* ---------- KARTU DATA ---------- */
+
+.data-card { padding: 18px 20px; background: #fff; border: 1px solid #E8E3D9; border-radius: 8px; }
+
+.data-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #E8E3D9; }
+.data-header h2 { color: #1E1D1B; font-size: 15px; }
+.data-header p { color: #6E6A63; font-size: 12px; }
+
+.header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.filter-gedung { padding: 7px 10px; background: #fff; border: 1px solid #D8D2C7; border-radius: 6px; color: #1E1D1B; font-size: 13px; cursor: pointer; outline: none; }
+.filter-gedung:focus { border-color: #E04F16; }
+
+.header-actions form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.cari-loker { width: 180px; padding: 7px 10px; background: #fff; border: 1px solid #D8D2C7; border-radius: 6px; font-size: 13px; outline: none; }
+.cari-loker:focus { border-color: #E04F16; }
+
+.btn-cari { padding: 7px 14px; background: #EFECE4; border: 1px solid #D8D2C7; border-radius: 6px; color: #1E1D1B; font-size: 13px; font-weight: bold; }
+.btn-cari:hover { background: #EFE5D8; }
+
+.btn-reset { color: #C85A17; font-size: 12px; font-weight: bold; text-decoration: none; }
+.btn-reset:hover { text-decoration: underline; }
+
+.empty-row { padding: 24px 12px; text-align: center; color: #9E988E; }
+
+.pesan { margin-bottom: 14px; padding: 12px 16px; background: #FDF3E7; border: 1px solid #E5A970; border-radius: 6px; color: #B85D19; }
+
+
+/* ---------- TOMBOL ---------- */
+
+button { cursor: pointer; }
+
+.btn-add, .btn-save, .btn-cancel, .btn-delete-confirm { display: inline-block; padding: 7px 14px; border: 1px solid transparent; border-radius: 6px; font-size: 13px; font-weight: bold; text-decoration: none; }
+
+.btn-add, .btn-save { background: #181715; border-color: #181715; color: #fff; }
+.btn-add:hover, .btn-save:hover { background: #E04F16; border-color: #E04F16; }
+
+.btn-cancel, .btn-edit { background: #EFECE4; border: 1px solid #D8D2C7; color: #1E1D1B; }
+.btn-cancel:hover, .btn-edit:hover { background: #EFE5D8; }
+
+.btn-delete { background: #F9E2DF; border: 1px solid #DFA69F; color: #B8473E; }
+.btn-delete:hover { background: #B8473E; border-color: #B8473E; color: #fff; }
+
+.btn-edit, .btn-delete { padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+
+.btn-delete-confirm { background: #B8473E; border-color: #B8473E; color: #fff; }
+.btn-delete-confirm:hover { background: #9E3B33; border-color: #9E3B33; }
+
+
+/* ---------- TABEL ---------- */
+
+.table-container { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+th { padding: 9px 12px; background: #FAF8F5; border-bottom: 1px solid #E8E3D9; color: #6E6A63; font-size: 12px; font-weight: bold; }
+td { padding: 9px 12px; border-bottom: 1px solid #E8E3D9; vertical-align: middle; }
+tr:hover td { background: #FAF8F5; }
+
+.kode { display: inline-block; padding: 3px 7px; background: #EFECE4; border: 1px solid #D8D2C7; border-radius: 4px; font-size: 11px; }
+
+.status { display: inline-block; padding: 3px 7px; border: 1px solid; border-radius: 4px; font-size: 11px; font-weight: bold; }
+.status.kosong { background: #F7F4EE; border-color: #E6E1D8; color: #9E988E; }
+.status.terisi { background: #EFECE6; border-color: #D4CBB8; color: #5A554E; }
+
+.actions { display: flex; gap: 6px; }
+
+
+/* ---------- MODAL ---------- */
+
+.modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 16px; background: rgba(24, 23, 21, .45); }
+.modal-overlay.active { display: flex; }
+
+.modal-card { width: 100%; max-width: 440px; max-height: 92vh; overflow-y: auto; padding: 20px; background: #fff; border: 1px solid #E8E3D9; border-radius: 8px; }
+
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #E8E3D9; }
+.modal-header h2 { color: #1E1D1B; font-size: 15px; }
+.modal-header p { color: #6E6A63; font-size: 12px; }
+.modal-close { width: 28px; height: 28px; background: #FAF8F5; border: 1px solid #E8E3D9; border-radius: 6px; color: #6E6A63; font-size: 16px; line-height: 1; }
+.modal-close:hover { background: #EFE5D8; color: #1E1D1B; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; margin-bottom: 5px; color: #6E6A63; font-size: 12px; font-weight: bold; }
+.form-group input, .form-group select { width: 100%; padding: 7px 10px; background: #fff; border: 1px solid #D8D2C7; border-radius: 6px; font-size: 13px; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: #E04F16; }
+
+.status-info { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; padding: 10px 12px; background: #FAF8F5; border: 1px solid #E8E3D9; border-radius: 6px; }
+.status-info p { color: #6E6A63; font-size: 12px; }
+.status-info .status { flex-shrink: 0; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Modal hapus */
+.delete-card { text-align: center; }
+.delete-card h2 { margin-bottom: 6px; font-size: 16px; }
+.delete-card p { margin-bottom: 18px; color: #6E6A63; }
+.delete-card .modal-actions { justify-content: center; }
+.delete-icon { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: 0 auto 12px; background: #F9E2DF; border: 1px solid #DFA69F; border-radius: 50%; color: #B8473E; font-size: 20px; font-weight: bold; }
+
+
+/* ---------- NOTIFIKASI TOASTR (warna tema) ---------- */
+
+#toast-container > div.toast { opacity: 1; border-radius: 6px; box-shadow: 0 4px 14px rgba(24, 23, 21, .15); font-family: Arial, Helvetica, sans-serif; }
+#toast-container > div.toast-success { background-color: #C85A17; }
+#toast-container > div.toast-error { background-color: #B8473E; }
+
+
+/* ---------- LAYAR KECIL ---------- */
+
+@media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #E8E3D9; }
+    .content { padding: 18px 14px; }
+}
