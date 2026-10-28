@@ -1,23 +1,68 @@
 <?php
 require_once "koneksi.php";
+require_once "fungsi.php";
 
 $halaman_aktif = 'beranda';
-$nama_admin    = $_SESSION['nama_lengkap'] ?? 'Admin TU';
+$nama_admin    = $_SESSION['nama_lengkap'] ?? 'Administrator';
 
-$stat             = ambilStatistik($koneksi, $mock_loker, $mock_barang);
-$semua_loker      = ambilDaftarLoker($koneksi, $mock_loker);
-$barang_terbaru   = array_slice(ambilDaftarBarang($koneksi, $mock_barang), 0, 5);
-$log_terbaru      = array_slice(ambilLogAktivitas($koneksi, $mock_log), 0, 4);
-$grafik_mingguan  = ambilGrafikMingguan($koneksi, $mock_grafik);
+$stat          = ambilStatistik($koneksi, $mock_loker, $mock_barang);
+$daftar_gedung = ambilRingkasanGedung($koneksi, $mock_gedung);
+$log_terbaru   = array_slice(ambilLogAktivitas($koneksi, $mock_log), 0, 4);
+$grafik_siswa  = ambilGrafikSiswaBulanan($koneksi);
 
-$loker_penuh_list = [];
-foreach ($semua_loker as $l) {
-    $terisi    = $l['terisi'] ?? 0;
-    $kapasitas = $l['kapasitas'] ?? 5;
-    if ($l['status'] === 'Penuh' || $terisi >= $kapasitas) {
-        $loker_penuh_list[] = $l['nomor_loker'];
-    }
+date_default_timezone_set('Asia/Jakarta');
+$jam_sekarang   = (int)date('H');
+$menit_sekarang = (int)date('i');
+$waktu_menit    = ($jam_sekarang * 60) + $menit_sekarang;
+
+if ($waktu_menit <= 659) {
+    $sapaan = 'Selamat Pagi';
+} elseif ($waktu_menit <= 900) {
+    $sapaan = 'Selamat Siang';
+} elseif ($waktu_menit <= 1080) {
+    $sapaan = 'Selamat Sore';
+} else {
+    $sapaan = 'Selamat Malam';
 }
+$heading_sapaan = $sapaan . ', ' . $nama_admin;
+
+$daftar_hari  = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+$daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+$tanggal_hari_ini = $daftar_hari[date('l')] . ', ' . date('j') . ' ' . $daftar_bulan[(int)date('n')] . ' ' . date('Y');
+$bulan_judul = $daftar_bulan[(int)date('n')] . ' ' . date('Y');
+
+$poin_grafik = $grafik_siswa['data'];
+$total_poin  = count($poin_grafik);
+$max_siswa   = max(5, $grafik_siswa['max_val']);
+
+$svg_w = 960;
+$svg_h = 240;
+$pad_l = 45;
+$pad_r = 25;
+$pad_t = 25;
+$pad_b = 35;
+$plot_w = $svg_w - $pad_l - $pad_r;
+$plot_h = $svg_h - $pad_t - $pad_b;
+$baseline_y = $svg_h - $pad_b;
+
+$line_coords = [];
+$svg_points = [];
+for ($i = 0; $i < $total_poin; $i++) {
+    $cx = $pad_l + ($i / max(1, $total_poin - 1)) * $plot_w;
+    $val = $poin_grafik[$i]['jumlah_siswa'];
+    $cy = $baseline_y - ($val / $max_siswa) * $plot_h;
+    $line_coords[] = round($cx, 1) . ',' . round($cy, 1);
+    $svg_points[] = [
+        'cx'    => round($cx, 1),
+        'cy'    => round($cy, 1),
+        'val'   => $val,
+        'hari'  => $poin_grafik[$i]['hari'],
+        'label' => $poin_grafik[$i]['label'],
+        'tgl'   => $poin_grafik[$i]['tanggal']
+    ];
+}
+$polyline_points = implode(' ', $line_coords);
+$area_polygon_points = round($pad_l, 1) . ',' . $baseline_y . ' ' . $polyline_points . ' ' . round($pad_l + $plot_w, 1) . ',' . $baseline_y;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -25,7 +70,7 @@ foreach ($semua_loker as $l) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - LokerKu</title>
-    <link rel="stylesheet" href="styleAdmin.css">
+    <link rel="stylesheet" href="styleAdmin.css?v=<?= filemtime(__DIR__ . '/styleAdmin.css') ?>">
 </head>
 <body>
 
@@ -33,50 +78,35 @@ foreach ($semua_loker as $l) {
     <?php include "sidebar.php"; ?>
 
     <main class="content">
-        <div class="topbar">
-            <div>
-                <p class="welcome">Selamat datang kembali, <?= $nama_admin ?></p>
-                <h1>Ringkasan Dashboard</h1>
+        <div class="topbar-beranda">
+            <div class="topbar-left">
+                <h1 class="topbar-greeting"><?= htmlspecialchars($heading_sapaan) ?></h1>
+                <div class="topbar-date"><?= $tanggal_hari_ini ?></div>
             </div>
-            <div class="profile">
-                <div class="profile-icon">TU</div>
-                <div>
-                    <strong><?= $nama_admin ?></strong>
-                    <small>Tata Usaha</small>
-                </div>
+            <div class="topbar-profile-circle" title="<?= htmlspecialchars($nama_admin) ?>">
+                <span>TU</span>
             </div>
         </div>
 
-        <?php if (!empty($loker_penuh_list)): ?>
-            <div class="alert-box alert-penuh">
-                <span>Peringatan: Loker <strong><?= implode(', ', $loker_penuh_list) ?></strong> sudah penuh.</span>
-                <a href="dataloker.php" class="btn btn-sm btn-secondary">Lihat Loker</a>
-            </div>
-        <?php endif; ?>
-
-        <div class="statistics">
+        <div class="statistics-5">
             <div class="stat-card">
-                <div class="stat-title">Total Loker</div>
+                <div class="stat-title">TOTAL LOKER</div>
                 <div class="stat-value"><?= $stat['total_loker'] ?></div>
             </div>
             <div class="stat-card">
-                <div class="stat-title">Loker Kosong</div>
+                <div class="stat-title">LOKER KOSONG</div>
                 <div class="stat-value"><?= $stat['loker_kosong'] ?></div>
             </div>
             <div class="stat-card">
-                <div class="stat-title">Loker Terisi</div>
+                <div class="stat-title">LOKER TERISI</div>
                 <div class="stat-value"><?= $stat['loker_terisi'] ?></div>
             </div>
-            <div class="stat-card <?= ($stat['loker_penuh'] > 0) ? 'alert' : '' ?>">
-                <div class="stat-title">Loker Penuh</div>
-                <div class="stat-value"><?= $stat['loker_penuh'] ?></div>
-            </div>
-            <div class="stat-card highlight">
-                <div class="stat-title">Barang Tersimpan</div>
+            <div class="stat-card">
+                <div class="stat-title">BARANG TERSIMPAN</div>
                 <div class="stat-value"><?= $stat['barang_tersimpan'] ?></div>
             </div>
             <div class="stat-card">
-                <div class="stat-title">Barang Diambil</div>
+                <div class="stat-title">BARANG DIAMBIL</div>
                 <div class="stat-value"><?= $stat['barang_diambil'] ?></div>
             </div>
         </div>
@@ -84,38 +114,25 @@ foreach ($semua_loker as $l) {
         <div class="row-grid">
             <div class="card">
                 <div class="card-header">
-                    <h3>Kondisi Loker (Blok C)</h3>
-                    <a href="dataloker.php" class="btn btn-sm btn-secondary">Semua Loker</a>
+                    <h3>Status Loker</h3>
                 </div>
 
-                <div class="locker-grid">
-                    <?php foreach ($semua_loker as $l): ?>
-                        <?php 
-                            $terisi    = $l['terisi'] ?? 0;
-                            $kapasitas = $l['kapasitas'] ?? 5;
-                            $persen    = ($kapasitas > 0) ? round(($terisi / $kapasitas) * 100) : 0;
-
-                            $badge_class = 'badge-terisi';
-                            $bar_class   = '';
-
-                            if ($l['status'] === 'Kosong') {
-                                $badge_class = 'badge-kosong';
-                                $bar_class   = 'empty';
-                            } elseif ($l['status'] === 'Penuh' || $terisi >= $kapasitas) {
-                                $badge_class = 'badge-penuh';
-                                $bar_class   = 'full';
-                            } elseif ($l['status'] === 'Menunggu Verifikasi') {
-                                $badge_class = 'badge-menunggu';
-                            }
-                        ?>
-                        <div class="locker-box">
-                            <div class="locker-head">
-                                <span class="locker-no"><?= htmlspecialchars($l['nomor_loker']) ?></span>
-                                <span class="badge <?= $badge_class ?>"><?= htmlspecialchars($l['status']) ?></span>
+                <div class="gedung-grid">
+                    <?php foreach ($daftar_gedung as $g): ?>
+                        <div class="gedung-card">
+                            <div class="gedung-header">
+                                <span class="gedung-title"><?= htmlspecialchars($g['nama_gedung']) ?></span>
+                                <a href="dataloker.php?gedung=<?= urlencode($g['nama_gedung']) ?>" class="btn-gedung-lihat">Lihat</a>
                             </div>
-                            <div class="locker-info"><?= $terisi ?> / <?= $kapasitas ?> (<?= $persen ?>%)</div>
-                            <div class="locker-bar">
-                                <div class="locker-bar-fill <?= $bar_class ?>" style="width: <?= $persen ?>%;"></div>
+                            <div class="gedung-stats">
+                                <div class="gedung-stat-item">
+                                    <span class="gedung-stat-label">Tersedia</span>
+                                    <span class="gedung-stat-val val-tersedia"><?= $g['loker_kosong'] ?></span>
+                                </div>
+                                <div class="gedung-stat-item">
+                                    <span class="gedung-stat-label">Terisi</span>
+                                    <span class="gedung-stat-val val-terisi"><?= $g['loker_terisi'] ?></span>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -124,124 +141,85 @@ foreach ($semua_loker as $l) {
 
             <div class="card">
                 <div class="card-header">
-                    <h3>Aktivitas Penitipan Mingguan</h3>
-                    <span class="badge badge-kode">Minggu Ini</span>
+                    <h3>Log Aktivitas Terbaru</h3>
+                    <a href="laporan.php?tab=log" class="btn-gedung-lihat">Lihat Semua</a>
                 </div>
 
-                <div class="chart">
-                    <?php foreach ($grafik_mingguan as $g): ?>
-                        <div class="bar-col <?= ($g['hari'] === 'Sabtu') ? 'active' : '' ?>">
-                            <div class="bar" style="height: <?= $g['tinggi'] ?>;"></div>
-                            <span class="bar-lbl"><?= htmlspecialchars($g['hari']) ?></span>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <div style="margin-top: 16px;">
-                    <div style="font-weight: 600; font-size: 12px; margin-bottom: 8px; color: #6E6A63;">Log Aktivitas Terbaru</div>
-                    <div class="table-container">
-                        <table>
-                            <tbody>
-                                <?php if (!empty($log_terbaru)): ?>
-                                    <?php foreach ($log_terbaru as $lg): ?>
-                                        <tr>
-                                            <td style="width: 70px;">
-                                                <span class="badge <?= ($lg['aksi'] === 'Tambah') ? 'badge-menunggu' : 'badge-terisi' ?>">
-                                                    <?= htmlspecialchars($lg['aksi']) ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <?= htmlspecialchars($lg['barang']) ?>
-                                                <div style="font-size: 11px; color: #6E6A63;"><?= htmlspecialchars($lg['keterangan']) ?></div>
-                                            </td>
-                                            <td style="font-size: 11px; color: #9E988E; width: 65px; text-align: right;">
-                                                <?= date('H:i', strtotime($lg['waktu'])) ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
+                <div class="table-container">
+                    <table>
+                        <tbody>
+                            <?php if (!empty($log_terbaru)): ?>
+                                <?php foreach ($log_terbaru as $lg): ?>
                                     <tr>
-                                        <td colspan="3" style="text-align: center; color: #9E988E; font-size: 12px; padding: 10px;">Belum ada log</td>
+                                        <td style="width: 70px;">
+                                            <span class="badge <?= ($lg['aksi'] === 'Tambah') ? 'badge-menunggu' : (($lg['aksi'] === 'Hapus') ? 'badge-penuh' : 'badge-terisi') ?>">
+                                                <?= htmlspecialchars($lg['aksi']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($lg['barang'] ?? $lg['keterangan']) ?></strong>
+                                            <div style="font-size: 11px; color: #6E6A63;"><?= htmlspecialchars($lg['keterangan']) ?></div>
+                                        </td>
+                                        <td style="font-size: 11px; color: #9E988E; width: 65px; text-align: right;">
+                                            <?= date('H:i', strtotime($lg['waktu'])) ?>
+                                        </td>
                                     </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3>Barang Titipan Terbaru</h3>
-                <a href="../DataBarang/indexBarang.php" class="btn btn-sm btn-primary">Kelola Data Barang</a>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 45px;">Foto</th>
-                            <th>Kode</th>
-                            <th>Nama Barang</th>
-                            <th>Siswa</th>
-                            <th>Loker</th>
-                            <th>Waktu Titip</th>
-                            <th>Status</th>
-                            <th style="width: 80px; text-align: center;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($barang_terbaru)): ?>
-                            <?php foreach ($barang_terbaru as $b): ?>
-                                <?php
-                                    $foto = $b['foto_barang'] ?? '';
-                                    $path_foto = '';
-                                    if ($foto !== '') {
-                                        if (file_exists(__DIR__ . "/../DataBarang/uploads/$foto")) $path_foto = "../DataBarang/uploads/$foto";
-                                        elseif (file_exists(__DIR__ . "/uploads/$foto")) $path_foto = "uploads/$foto";
-                                        elseif (file_exists(__DIR__ . "/../uploads/$foto")) $path_foto = "../uploads/$foto";
-                                    }
-                                ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
-                                    <td>
-                                        <div class="thumb-foto">
-                                            <?php if ($path_foto !== ''): ?>
-                                                <img src="<?= $path_foto ?>" alt="Foto">
-                                            <?php else: ?>
-                                                <span>-</span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-kode"><?= htmlspecialchars($b['kode_barang']) ?></span></td>
-                                    <td><strong><?= htmlspecialchars($b['nama_barang']) ?></strong></td>
-                                    <td><?= htmlspecialchars($b['nama_siswa']) ?></td>
-                                    <td><span class="badge badge-terisi"><?= htmlspecialchars($b['nomor_loker']) ?></span></td>
-                                    <td style="color: #6E6A63; font-size: 12px;"><?= htmlspecialchars($b['waktu_penitipan']) ?></td>
-                                    <td>
-                                        <?php if ($b['status'] === 'Tersimpan'): ?>
-                                            <span class="badge badge-tersimpan">Tersimpan</span>
-                                        <?php else: ?>
-                                            <span class="badge badge-diambil">Sudah diambil</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="text-align: center; white-space: nowrap;">
-                                        <a href="../DataBarang/verificationBarang.php?id=<?= $b['id_barang'] ?>" class="btn btn-sm btn-secondary">Verifikasi</a>
+                                    <td colspan="3" style="text-align: center; color: #8C867D; padding: 24px 0;">
+                                        Belum ada aktivitas tercatat
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="8" style="text-align: center; color: #9E988E; padding: 20px;">
-                                    Belum ada data barang.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3>Aktivitas Penitipan Siswa</h3>
+                <div class="chart-badge">
+                    <span class="chart-badge-dot"></span>
+                    <span><?= htmlspecialchars($bulan_judul) ?></span>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <svg class="chart-svg" viewBox="0 0 <?= $svg_w ?> <?= $svg_h ?>" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#E04F16" stop-opacity="0.22" />
+                            <stop offset="100%" stop-color="#E04F16" stop-opacity="0.0" />
+                        </linearGradient>
+                    </defs>
+
+                    <?php for ($step = 0; $step <= 4; $step++): ?>
+                        <?php 
+                            $step_y = $baseline_y - ($step / 4) * $plot_h;
+                            $step_val = round(($step / 4) * $max_siswa);
+                        ?>
+                        <line x1="<?= $pad_l ?>" y1="<?= $step_y ?>" x2="<?= $pad_l + $plot_w ?>" y2="<?= $step_y ?>" stroke="#E8E3D9" stroke-width="1" stroke-dasharray="<?= ($step > 0 && $step < 4) ? '4,4' : 'none' ?>" />
+                        <text x="<?= $pad_l - 8 ?>" y="<?= $step_y + 4 ?>" text-anchor="end" font-size="11" fill="#8C867D" font-family="'Plus Jakarta Sans', Arial, sans-serif"><?= $step_val ?></text>
+                    <?php endfor; ?>
+
+                    <polygon points="<?= $area_polygon_points ?>" fill="url(#chartGrad)" />
+
+                    <polyline points="<?= $polyline_points ?>" fill="none" stroke="#E04F16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                    <?php foreach ($svg_points as $pt): ?>
+                        <g class="chart-point">
+                            <title><?= htmlspecialchars($pt['hari']) ?>, <?= htmlspecialchars($pt['tgl']) ?>: <?= $pt['val'] ?> Siswa</title>
+                            <circle cx="<?= $pt['cx'] ?>" cy="<?= $pt['cy'] ?>" r="3.5" fill="#FFFFFF" stroke="#E04F16" stroke-width="2" />
+                            <text x="<?= $pt['cx'] ?>" y="<?= $baseline_y + 16 ?>" text-anchor="middle" font-size="10" fill="#6E6A63" font-family="'Plus Jakarta Sans', Arial, sans-serif"><?= $pt['hari'] ?></text>
+                            <text x="<?= $pt['cx'] ?>" y="<?= $baseline_y + 27 ?>" text-anchor="middle" font-size="9" fill="#9E988E" font-family="'Plus Jakarta Sans', Arial, sans-serif"><?= explode('/', $pt['label'])[0] ?></text>
+                        </g>
+                    <?php endforeach; ?>
+                </svg>
+            </div>
+        </div>
     </main>
 </div>
 
