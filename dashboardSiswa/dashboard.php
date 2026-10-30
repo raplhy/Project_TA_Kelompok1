@@ -58,16 +58,16 @@ $page_title = 'Dashboard Siswa - ' . $gedung_aktif;
 include __DIR__ . '/header.php';
 ?>
 
-<!-- NOTIFIKASI SUKSES / GAGAL -->
+<!-- NOTIFIKASI SUKSES / GAGAL (Tema Cream) -->
 <?php if (isset($_SESSION['flash_success'])): ?>
-    <div style="background: #dcfce7; color: #15803d; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 600;">
+    <div style="background: #FDF3E7; color: #B85D19; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #E5A970;">
         <i class="fa-solid fa-circle-check"></i> <?= $_SESSION['flash_success']; ?>
     </div>
     <?php unset($_SESSION['flash_success']); ?>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['flash_error'])): ?>
-    <div style="background: #fee2e2; color: #b91c1c; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 600;">
+    <div style="background: #F9E2DF; color: #B8473E; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #DFA69F;">
         <i class="fa-solid fa-circle-exclamation"></i> <?= $_SESSION['flash_error']; ?>
     </div>
     <?php unset($_SESSION['flash_error']); ?>
@@ -86,7 +86,7 @@ include __DIR__ . '/header.php';
         <div class="stat-icon"><i class="fa-solid fa-door-open"></i></div>
         <div class="stat-data">
             <h4>Sisa Loker Kosong</h4>
-            <h2 style="color: #0284c7;">-</h2>
+            <h2>-</h2> <!-- Warna biru dihapus, ikut tema -->
         </div>
     </div>
     <div class="stat-card">
@@ -126,7 +126,7 @@ include __DIR__ . '/header.php';
         </thead>
         <tbody>
             <tr>
-                <td colspan="7" style="text-align: center; color: #94a3b8; padding: 30px;">Belum ada data barang.</td>
+                <td colspan="7" style="text-align: center; color: #9E988E; padding: 30px;">Belum ada data barang.</td>
             </tr>
         </tbody>
     </table>
@@ -145,14 +145,14 @@ include __DIR__ . '/header.php';
             <div class="form-group">
                 <label>Nomor Loker Kosong di <?php echo htmlspecialchars($gedung_aktif); ?> (1-140)</label>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-weight: 700; font-size: 14px; background: #e2e8f0; padding: 7px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <span style="font-weight: bold; font-size: 14px; background: #EFECE4; color: #1E1D1B; padding: 7px 12px; border-radius: 6px; border: 1px solid #D8D2C7;">
                         <?php echo $kode_gedung_prefix; ?>
                     </span>
                     <input type="number" name="no_loker" class="form-input" placeholder="Contoh: 1" min="1" max="140">
                 </div>
                 <div class="loker-info-box">
                     <strong><i class="fa-solid fa-info-circle"></i> Daftar Loker Kosong:</strong><br>
-                    <span style="color: #94a3b8;">Data loker akan tampil setelah integrasi backend.</span>
+                    <span>Data loker akan tampil setelah integrasi backend.</span>
                 </div>
             </div>
             <div class="form-group">
@@ -167,18 +167,17 @@ include __DIR__ . '/header.php';
     </div>
 </div>
 
-<!-- MODAL 2: PROFIL (MENGARAH KE DASHBOARD.PHP SENDIRI) -->
+<!-- MODAL 2: PROFIL -->
 <div class="modal-bg" id="modalProfile">
     <div class="modal-box">
         <h3><i class="fa-solid fa-user-gear"></i> Pengaturan Profil Saya</h3>
         
-        <!-- Perhatikan action-nya mengarah ke dashboard.php -->
         <form action="dashboard.php" method="POST">
             <div style="text-align: center; margin-bottom: 15px;">
                 <div class="avatar-circle" style="width: 70px; height: 70px; margin: 0 auto 10px; font-size: 24px;">
                     <?php echo $inisial; ?>
                 </div>
-                <label style="cursor: pointer; font-size: 12px; color: #0284c7; font-weight: 600;">
+                <label style="cursor: pointer; font-size: 12px; color: #C85A17; font-weight: 600;">
                     <i class="fa-solid fa-camera"></i> Ubah Foto Profil
                     <input type="file" name="foto_profil" accept="image/*" style="display: none;">
                 </label>
@@ -186,7 +185,7 @@ include __DIR__ . '/header.php';
 
             <div class="form-group">
                 <label>Nama Lengkap</label>
-                <input type="text" name="nama_lengkap" class="form-input" value="<?php echo htmlspecialchars($nama_lengkap); ?>" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                <input type="text" name="nama_lengkap" class="form-input" value="<?php echo htmlspecialchars($nama_lengkap); ?>" readonly style="background: #FAF8F5; cursor: not-allowed;">
             </div>
             <div class="form-group">
                 <label>Email</label>
@@ -203,7 +202,6 @@ include __DIR__ . '/header.php';
 
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeModalProfile()">Batal</button>
-                <!-- Tombol ini namanya update_profil, dipakai buat ngecek di bagian atas kode -->
                 <button type="submit" name="update_profil" class="btn-primary">Simpan Perubahan</button>
             </div>
         </form>
@@ -228,7 +226,7 @@ include __DIR__ . '/header.php';
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">Belum ada data riwayat.</td>
+                        <td colspan="6" style="text-align: center; color: #9E988E; padding: 20px;">Belum ada data riwayat.</td>
                     </tr>
                 </tbody>
             </table>

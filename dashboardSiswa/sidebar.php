@@ -65,18 +65,20 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
 </aside>
 
 <style>
-/* ====== SIDEBAR UTAMA ====== */
+/* ====== SIDEBAR UTAMA (TEMA CREAM/ABU RAFFA) ====== */
 .sidebar {
     width: 260px;
     min-height: 100vh;
-    background: #0f233a;
-    color: #ffffff;
+    background: #FAF8F5; 
+    border-right: 1px solid #E8E3D9;
+    color: #1E1D1B;
     display: flex;
     flex-direction: column;
     font-family: 'Roboto', sans-serif;
     flex-shrink: 0;
     transition: width 0.3s ease;
     overflow: hidden;
+    z-index: 10;
 }
 
 /* ====== BRAND / LOGO ====== */
@@ -85,7 +87,7 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
     align-items: center;
     gap: 10px;
     padding: 18px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid #E8E3D9;
     white-space: nowrap;
     min-height: 76px;
 }
@@ -100,14 +102,14 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
 .brand-text {
     font-size: 15px;
     font-weight: 800;
-    color: #ffffff;
+    color: #1E1D1B;
     letter-spacing: 0.5px;
     text-transform: uppercase;
     line-height: 1.2;
     white-space: nowrap;
 }
 
-.brand-text span { color: #FF9149; }
+.brand-text span { color: #C85A17; }
 
 /* ====== NAV ====== */
 .sidebar-nav {
@@ -120,9 +122,9 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
 .nav-section { margin-bottom: 20px; }
 
 .nav-section-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: #64748b;
+    font-size: 11px;
+    font-weight: bold;
+    color: #9E988E;
     padding: 8px 20px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -134,7 +136,7 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
     align-items: center;
     gap: 12px;
     padding: 11px 20px;
-    color: #cbd5e1;
+    color: #6E6A63;
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
@@ -152,28 +154,28 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: #ffffff;
+    background: #EFE5D8;
+    color: #1E1D1B;
 }
 
 .nav-link.active {
-    background: rgba(255, 145, 73, 0.1);
-    color: #FF9149;
-    border-left-color: #FF9149;
-    font-weight: 600;
+    background: #EFE5D8;
+    color: #C85A17;
+    border-left-color: #E04F16;
+    font-weight: bold;
 }
 
 .nav-arrow {
     margin-left: auto;
     font-size: 11px;
-    color: #64748b;
+    color: #9E988E;
     transition: transform 0.3s ease;
     flex-shrink: 0;
 }
 
 .nav-arrow.rotate {
     transform: rotate(180deg);
-    color: #FF9149;
+    color: #C85A17;
 }
 
 .nav-submenu {
@@ -190,7 +192,7 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
     align-items: center;
     gap: 10px;
     padding: 9px 20px 9px 45px;
-    color: #94a3b8;
+    color: #6E6A63;
     text-decoration: none;
     font-size: 12.5px;
     transition: background 0.2s, color 0.2s;
@@ -206,22 +208,22 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
 }
 
 .nav-sublink:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: #ffffff;
+    background: #EFE5D8;
+    color: #1E1D1B;
 }
 
 .nav-sublink.active {
-    background: rgba(255, 145, 73, 0.1);
-    color: #FF9149;
-    border-left-color: #FF9149;
-    font-weight: 600;
+    background: #EFE5D8;
+    color: #C85A17;
+    border-left-color: #E04F16;
+    font-weight: bold;
 }
 
 .sidebar-footer {
     padding: 15px 20px;
-    font-size: 11px;
-    color: #475569;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    color: #9E988E;
+    border-top: 1px solid #E8E3D9;
     text-align: center;
     white-space: nowrap;
 }
@@ -268,8 +270,8 @@ $kode_gedung = strtoupper(str_replace('Gedung', '', trim($current_gedung)));
 }
 
 .sidebar.collapsed .nav-link:hover {
-    background: rgba(255, 145, 73, 0.15);
-    color: #FF9149;
+    background: #EFE5D8;
+    color: #C85A17;
 }
 </style>
 
@@ -296,7 +298,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ==========================================================
        CARI TOMBOL HAMBURGER DI HEADER (GARIS 3)
-       Coba semua kemungkinan selector
        ========================================================== */
     const selectors = [
         '.hamburger-btn',
@@ -328,7 +329,6 @@ document.addEventListener('DOMContentLoaded', function () {
             e.stopPropagation();
             sidebar.classList.toggle('collapsed');
         });
-        console.log('✅ Tombol hamburger berhasil terpasang:', hamburger);
     } else {
         console.warn('⚠️ Tombol hamburger TIDAK DITEMUKAN. Cek header.php — pastikan tombol ☰ punya class/id yang benar.');
     }
