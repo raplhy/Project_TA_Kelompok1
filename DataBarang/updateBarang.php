@@ -1,6 +1,11 @@
 <?php
 require_once "connectBarang.php";
 
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'siswa') {
+    header("Location: indexBarang.php?pesan=akses_ditolak");
+    exit();
+}
+
 $id = $_REQUEST['id'] ?? 0;
 
 $qBarang = mysqli_query($koneksi, "SELECT * FROM barang WHERE id_barang = '$id'");
@@ -81,12 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             waktu_pengambilan = $waktu_ambil
             WHERE id_barang = '$id'");
 
-        $id_admin = $_SESSION['id_user'] ?? 1;
-        $ket_log = ($status === 'Sudah diambil') 
-            ? "Mengubah status barang $nama_bersih menjadi Sudah diambil" 
-            : "Mengubah data barang $nama_bersih";
-        @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, keterangan, waktu) 
-            VALUES ('$id_admin', 'Ubah', '$id', '$ket_log', NOW())");
+        $id_admin = (int)($_SESSION['id_user'] ?? 30);
+        @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, waktu) 
+            VALUES ('$id_admin', 'Ubah', '$id', NOW())");
 
         if ($status === 'Tersimpan') {
             mysqli_query($koneksi, "UPDATE loker SET status = 'Terisi' WHERE id_loker = '$id_loker_baru'");
@@ -123,7 +125,7 @@ $ada_foto   = (!empty($barang['foto_barang']) && file_exists($path_foto));
     <div class="header-box">
         <div>
             <h2>Edit Data Barang</h2>
-            <p>Perbarui informasi barang titipan dengan kode <strong><?= $barang['kode_barang'] ?></strong></p>
+            <p>Perbarui informasi barang titipan <strong><?= htmlspecialchars($barang['nama_barang']) ?></strong></p>
         </div>
         <div>
             <a href="indexBarang.php" class="btn btn-secondary">Kembali</a>
@@ -138,10 +140,6 @@ $ada_foto   = (!empty($barang['foto_barang']) && file_exists($path_foto));
         <form action="updateBarang.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?= $barang['id_barang'] ?>">
 
-            <div class="form-group">
-                <label>Kode Barang:</label>
-                <input type="text" class="form-control" value="<?= $barang['kode_barang'] ?>" readonly>
-            </div>
 
             <div class="form-group">
                 <label for="id_siswa">Siswa Pemilik:</label>
@@ -161,7 +159,7 @@ $ada_foto   = (!empty($barang['foto_barang']) && file_exists($path_foto));
                     <option value="">Pilih Loker</option>
                     <?php while ($l = mysqli_fetch_assoc($queryLoker)): ?>
                         <option value="<?= $l['id_loker'] ?>" <?= ($barang['id_loker'] == $l['id_loker']) ? 'selected' : '' ?>>
-                            Loker <?= $l['nomor_loker'] ?> - Lokasi: <?= $l['lokasi'] ?>
+                            Loker <?= $l['nomor_loker'] ?>
                         </option>
                     <?php endwhile; ?>
                 </select>

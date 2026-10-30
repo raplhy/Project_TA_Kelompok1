@@ -25,15 +25,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['aksi_massal']
         }
     }
 
+    $id_admin = (int)($_SESSION['id_user'] ?? 30);
     if ($aksi === 'verifikasi') {
         mysqli_query($koneksi, "UPDATE barang SET status = 'Sudah diambil', waktu_pengambilan = NOW() WHERE id_barang IN ($id_list) AND status = 'Tersimpan'");
-        @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, keterangan, waktu) 
-            VALUES (1, 'Ubah', NULL, 'Verifikasi massal $jumlah barang sudah diambil', NOW())");
+        @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, waktu) VALUES ('$id_admin', 'Ubah', NULL, NOW())");
         $pesan = "sukses_verifikasi_massal";
     } elseif ($aksi === 'hapus') {
+        if (isset($_SESSION['role']) && $_SESSION['role'] === 'siswa') {
+            header('Location: indexBarang.php?pesan=akses_ditolak');
+            exit();
+        }
         mysqli_query($koneksi, "DELETE FROM barang WHERE id_barang IN ($id_list)");
-        @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, keterangan, waktu) 
-            VALUES (1, 'Hapus', NULL, 'Hapus massal $jumlah data barang', NOW())");
+        @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, waktu) VALUES ('$id_admin', 'Hapus', NULL, NOW())");
         $pesan = "sukses_hapus_massal";
     }
 
@@ -49,14 +52,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['aksi_massal']
     exit();
 }
 
+$id_siswa_login = (int)($_SESSION['id_user'] ?? 0);
 $kata_kunci    = trim($_GET['cari'] ?? '');
 $filter_status = $_GET['status'] ?? '';
 $kondisi       = "WHERE 1=1";
 
+if ($id_siswa_login > 0 && isset($_SESSION['role']) && $_SESSION['role'] === 'siswa') {
+    $kondisi .= " AND b.id_siswa = $id_siswa_login";
+}
+
 if ($kata_kunci !== '') {
     $cari = mysqli_real_escape_string($koneksi, $kata_kunci);
     $kondisi .= " AND (b.nama_barang LIKE '%$cari%' 
-                   OR b.kode_barang LIKE '%$cari%' 
                    OR u.nama_lengkap LIKE '%$cari%' 
                    OR l.nomor_loker LIKE '%$cari%')";
 }
@@ -75,9 +82,12 @@ $querySql = "SELECT b.*, u.nama_lengkap AS nama_siswa, u.username AS nis_siswa, 
              ORDER BY b.id_barang DESC";
 $hasilData = mysqli_query($koneksi, $querySql);
 
-$c_semua     = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM barang"));
-$c_tersimpan = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM barang WHERE status = 'Tersimpan'"));
-$c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM barang WHERE status = 'Sudah diambil'"));
+$where_siswa = ($id_siswa_login > 0 && isset($_SESSION['role']) && $_SESSION['role'] === 'siswa') ? " WHERE id_siswa = $id_siswa_login" : "";
+$and_siswa   = ($id_siswa_login > 0 && isset($_SESSION['role']) && $_SESSION['role'] === 'siswa') ? " AND id_siswa = $id_siswa_login" : "";
+
+$c_semua     = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM barang $where_siswa"));
+$c_tersimpan = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM barang WHERE status = 'Tersimpan' $and_siswa"));
+$c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM barang WHERE status = 'Sudah diambil' $and_siswa"));
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -92,12 +102,9 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
 <div class="container">
     <div class="header-box">
         <div>
-            <h2>Data Barang Titipan</h2>
-            <p>Daftar seluruh barang yang dititipkan siswa di loker sekolah</p>
+            <h2>Penitipan Barang Siswa</h2>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a href="../DashboardAdmin/laporan.php" class="btn btn-secondary">Rekap & Laporan</a>
-            <a href="../DashboardAdmin/beranda.php" class="btn btn-secondary">Dashboard Admin</a>
             <a href="createBarang.php" class="btn btn-primary">+ Tambah Barang</a>
         </div>
     </div>
@@ -119,21 +126,16 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
                 <div class="alert alert-info">Berhasil menghapus <strong><?= $total ?></strong> data barang terpilih beserta fotonya.</div>
             <?php elseif ($p == 'tidak_ada_pilihan'): ?>
                 <div class="alert alert-danger">Silakan pilih minimal 1 barang terlebih dahulu dengan mencentang kotak.</div>
+            <?php elseif ($p == 'akses_ditolak'): ?>
+                <div class="alert alert-danger">Akses ditolak: Siswa hanya dapat menambahkan barang dan memverifikasi pengambilan (tidak diizinkan mengedit atau menghapus).</div>
             <?php endif; ?>
         </div>
     <?php endif; ?>
 
     <div class="card">
         <div class="toolbar">
-            <form method="GET" action="indexBarang.php" class="search-form">
-                <?php if ($filter_status !== ''): ?>
-                    <input type="hidden" name="status" value="<?= $filter_status ?>">
-                <?php endif; ?>
-                <input type="text" name="cari" class="search-input" placeholder="Cari barang, kode, atau siswa..." value="<?= $kata_kunci ?>">
-                <button type="submit" class="btn btn-secondary">Cari</button>
-                <?php if ($kata_kunci !== '' || $filter_status !== ''): ?>
-                    <a href="indexBarang.php" class="btn btn-secondary btn-sm" style="line-height: 22px;">Reset</a>
-                <?php endif; ?>
+            <form method="GET" action="indexBarang.php" class="search-form" onsubmit="return false;">
+                <input type="text" id="inputCariBarang" name="cari" class="search-input" placeholder="Cari barang atau nomor loker..." value="<?= htmlspecialchars($kata_kunci) ?>" autocomplete="off" style="width: 270px;">
             </form>
 
             <?php $paramCari = ($kata_kunci !== '') ? '&cari=' . urlencode($kata_kunci) : ''; ?>
@@ -165,32 +167,34 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
                 </div>
                 <div class="bulk-buttons">
                     <button type="submit" name="aksi_massal" value="verifikasi" class="btn btn-sm btn-success" onclick="return konfirmasiAksi('verifikasi')">
-                        ✓ Tandai Sudah Diambil
-                    </button>
-                    <button type="submit" name="aksi_massal" value="hapus" class="btn btn-sm btn-danger" onclick="return konfirmasiAksi('hapus')">
-                        Hapus Terpilih
+                        Tandai Sudah Diambil
                     </button>
                 </div>
             </div>
 
             <div class="table-responsive">
-                <table>
+                <table class="table-bordered">
                     <thead>
                         <tr>
-                            <th style="width: 45px; text-align: center;">Pilih</th>
-                            <th style="width: 35px; text-align: center;">No</th>
-                            <th style="width: 60px;">Foto</th>
-                            <th>Kode Barang</th>
-                            <th>Nama Barang</th>
-                            <th>Siswa</th>
-                            <th>Loker</th>
-                            <th>Status</th>
-                            <th>Waktu Penitipan</th>
-                            <th>Waktu Pengambilan</th>
-                            <th style="text-align: center; width: 180px;">Aksi</th>
+                            <th style="width: 36px; min-width: 36px; max-width: 38px; text-align: center; padding: 6px 4px;">
+                                <input type="checkbox" id="checkAllHead" onchange="toggleSelectAll(this)" title="Pilih Semua" style="cursor: pointer; width: 14px; height: 14px; margin: 0; vertical-align: middle; accent-color: #E04F16;">
+                            </th>
+                            <th style="width: 45px; text-align: center;">No</th>
+                            <th style="width: 65px; text-align: center;">Foto</th>
+                            <th style="text-align: center;">Nama Barang</th>
+                            <th style="width: 90px; text-align: center;">Loker</th>
+                            <th style="width: 120px; text-align: center;">Status</th>
+                            <th style="width: 145px; text-align: center;">Waktu Penitipan</th>
+                            <th style="width: 145px; text-align: center;">Waktu Pengambilan</th>
+                            <th style="width: 130px; text-align: center;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr id="barisKosongCari" style="display: none;">
+                            <td colspan="9" style="text-align: center; color: #9E988E; padding: 30px;">
+                                Tidak ada data barang yang sesuai dengan pencarian.
+                            </td>
+                        </tr>
                         <?php if (mysqli_num_rows($hasilData) > 0): ?>
                             <?php 
                             $no = 1;
@@ -198,55 +202,55 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
                                 $path_foto = 'uploads/' . $row['foto_barang'];
                                 $ada_foto = (!empty($row['foto_barang']) && file_exists($path_foto));
                             ?>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <input type="checkbox" name="id_barang[]" value="<?= $row['id_barang'] ?>" class="item-checkbox" onchange="hitungTerpilih()">
+                            <tr class="baris-barang" data-nama="<?= htmlspecialchars(mb_strtolower($row['nama_barang'], 'UTF-8')) ?>" data-loker="<?= htmlspecialchars(mb_strtolower($row['nomor_loker'] ?? '', 'UTF-8')) ?>" data-siswa="<?= htmlspecialchars(mb_strtolower($row['nama_siswa'] ?? '', 'UTF-8')) ?>">
+                                <td style="width: 36px; min-width: 36px; max-width: 38px; text-align: center; padding: 6px 4px;">
+                                    <input type="checkbox" name="id_barang[]" value="<?= $row['id_barang'] ?>" class="item-checkbox" onchange="hitungTerpilih()" style="cursor: pointer; width: 14px; height: 14px; margin: 0; vertical-align: middle; accent-color: #E04F16;">
                                 </td>
-                                <td style="text-align: center;"><?= $no++ ?></td>
-                                <td>
+                                <td style="text-align: center; color: #9E988E;"><?= $no++ ?></td>
+                                <td style="text-align: center;">
                                     <?php if ($ada_foto): ?>
-                                        <a href="<?= $path_foto ?>" target="_blank">
+                                        <a href="<?= $path_foto ?>" target="_blank" style="display: inline-block;">
                                             <img src="<?= $path_foto ?>" alt="Foto" class="thumb-img">
                                         </a>
                                     <?php else: ?>
-                                        <span style="font-size: 11px; color: #9E988E;">No Foto</span>
+                                        <span style="font-size: 11px; color: #9E988E;">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <span class="badge-kode"><?= $row['kode_barang'] ?></span>
+                                <td style="text-align: center;">
+                                    <strong><?= htmlspecialchars($row['nama_barang']) ?></strong>
                                 </td>
-                                <td>
-                                    <strong><?= $row['nama_barang'] ?></strong>
+                                <td style="text-align: center;">
+                                    <?php if (!empty($row['nomor_loker'])): ?>
+                                        <span class="badge badge-kode"><?= htmlspecialchars($row['nomor_loker']) ?></span>
+                                    <?php else: ?>
+                                        <span class="badge badge-secondary">-</span>
+                                    <?php endif; ?>
                                 </td>
-                                <td>
-                                    <?= $row['nama_siswa'] ?? 'Siswa #' . $row['id_siswa'] ?>
-                                    <br><small style="color: #6E6A63;"><?= $row['nis_siswa'] ?? '' ?></small>
-                                </td>
-                                <td>
-                                    Loker <?= $row['nomor_loker'] ?? '-' ?>
-                                    <br><small style="color: #6E6A63;"><?= $row['lokasi'] ?? '' ?></small>
-                                </td>
-                                <td>
+                                <td style="text-align: center;">
                                     <?php if ($row['status'] == 'Tersimpan'): ?>
                                         <span class="badge badge-tersimpan">Tersimpan</span>
                                     <?php else: ?>
                                         <span class="badge badge-diambil">Sudah diambil</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= date('d/m/Y H:i', strtotime($row['waktu_penitipan'])) ?></td>
-                                <td>
+                                <td style="text-align: center; color: #6E6A63; font-size: 12px; white-space: nowrap;">
+                                    <?= date('d/m/Y H:i', strtotime($row['waktu_penitipan'])) ?>
+                                </td>
+                                <td style="text-align: center; color: #6E6A63; font-size: 12px; white-space: nowrap;">
                                     <?= !empty($row['waktu_pengambilan']) ? date('d/m/Y H:i', strtotime($row['waktu_pengambilan'])) : '-' ?>
                                 </td>
                                 <td style="text-align: center; white-space: nowrap;">
-                                    <a href="verificationBarang.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-primary">Verifikasi</a>
-                                    <a href="updateBarang.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-warning">Edit</a>
-                                    <a href="deleteBarang.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus barang <?= $row['kode_barang'] ?>?')">Hapus</a>
+                                    <?php if ($row['status'] === 'Tersimpan'): ?>
+                                        <a href="verificationBarang.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-primary">Verifikasi</a>
+                                    <?php else: ?>
+                                        <span style="font-size: 11px; color: #8C867D; font-weight: 600;">Selesai</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <tr>
-                                <td colspan="11" style="text-align: center; padding: 30px; color: #6E6A63;">
+                            <tr id="barisKosongPhp">
+                                <td colspan="9" style="text-align: center; padding: 30px; color: #6E6A63;">
                                     Belum ada data barang. Silakan klik tombol <strong>+ Tambah Barang</strong>.
                                 </td>
                             </tr>
@@ -260,42 +264,111 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
 
 <script>
 function toggleSelectAll(master) {
-    const checkboxes = document.querySelectorAll('.item-checkbox');
-    checkboxes.forEach(cb => cb.checked = master.checked);
+    var checkboxes = document.querySelectorAll('.item-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var tr = checkboxes[i].closest('tr');
+        if (!tr || tr.style.display !== 'none') {
+            checkboxes[i].checked = master.checked;
+        }
+    }
+    var m1 = document.getElementById('checkAll');
+    var m2 = document.getElementById('checkAllHead');
+    if (m1 && m1 !== master) m1.checked = master.checked;
+    if (m2 && m2 !== master) m2.checked = master.checked;
     hitungTerpilih();
 }
 
 function hitungTerpilih() {
-    const semua = document.querySelectorAll('.item-checkbox');
-    const terpilih = document.querySelectorAll('.item-checkbox:checked');
-
-    document.getElementById('jumlahTerpilih').innerText = terpilih.length;
-
-    const checkAll = document.getElementById('checkAll');
-    if (checkAll && semua.length > 0) {
-        checkAll.checked = (terpilih.length === semua.length);
+    var checkboxes = document.querySelectorAll('.item-checkbox');
+    var totalVisible = 0;
+    var checkedVisible = 0;
+    for (var i = 0; i < checkboxes.length; i++) {
+        var tr = checkboxes[i].closest('tr');
+        if (!tr || tr.style.display !== 'none') {
+            totalVisible++;
+            if (checkboxes[i].checked) checkedVisible++;
+        }
     }
+
+    var el = document.getElementById('jumlahTerpilih');
+    if (el) el.innerText = checkedVisible;
+
+    var m1 = document.getElementById('checkAll');
+    var m2 = document.getElementById('checkAllHead');
+    var all = (totalVisible > 0 && checkedVisible === totalVisible);
+    if (m1) m1.checked = all;
+    if (m2) m2.checked = all;
 }
 
 function konfirmasiAksi(jenisAksi) {
-    const total = document.querySelectorAll('.item-checkbox:checked').length;
-
-    if (total === 0) {
+    var ceks = document.querySelectorAll('.item-checkbox:checked');
+    if (ceks.length === 0) {
         alert('Silakan pilih minimal 1 barang terlebih dahulu!');
         return false;
     }
 
     if (jenisAksi === 'verifikasi') {
-        return confirm('Yakin ingin memverifikasi ' + total + ' barang terpilih sudah diambil?');
+        return confirm('Yakin ingin memverifikasi ' + ceks.length + ' barang terpilih sudah diambil?');
     } else if (jenisAksi === 'hapus') {
-        return confirm('Yakin ingin menghapus ' + total + ' data barang terpilih beserta fotonya?');
+        return confirm('Yakin ingin menghapus ' + ceks.length + ' data barang terpilih beserta fotonya?');
     }
     return false;
 }
 
-const notifAlert = document.getElementById('notifikasiAlert');
+(function() {
+    var inputCari = document.getElementById('inputCariBarang');
+    if (!inputCari) return;
+
+    var rows = document.querySelectorAll('.baris-barang');
+    var emptyRow = document.getElementById('barisKosongCari');
+    var emptyPhp = document.getElementById('barisKosongPhp');
+
+    function filterBarang() {
+        var q = inputCari.value.trim().toLowerCase();
+        var visibleCount = 0;
+
+        rows.forEach(function(row) {
+            var nama = row.getAttribute('data-nama') || '';
+            var loker = row.getAttribute('data-loker') || '';
+            var siswa = row.getAttribute('data-siswa') || '';
+
+            if (q === '' || nama.indexOf(q) !== -1 || loker.indexOf(q) !== -1 || siswa.indexOf(q) !== -1) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+                var cb = row.querySelector('.item-checkbox');
+                if (cb && cb.checked) {
+                    cb.checked = false;
+                }
+            }
+        });
+
+        if (emptyRow) {
+            emptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+        if (emptyPhp && rows.length === 0) {
+            emptyPhp.style.display = '';
+        }
+
+        hitungTerpilih();
+    }
+
+    inputCari.addEventListener('input', filterBarang);
+    inputCari.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    });
+
+    if (inputCari.value.trim() !== '') {
+        filterBarang();
+    }
+})();
+
+var notifAlert = document.getElementById('notifikasiAlert');
 if (notifAlert) {
-    setTimeout(() => {
+    setTimeout(function() {
         notifAlert.style.display = 'none';
     }, 4000);
 }

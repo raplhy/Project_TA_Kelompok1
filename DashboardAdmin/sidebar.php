@@ -67,7 +67,7 @@ $nama_admin    = $_SESSION['nama_lengkap'] ?? 'Administrator';
 
     <div class="sidebar-footer">
         <div class="sidebar-profile" title="<?= htmlspecialchars($nama_admin) ?>">
-            <div class="profile-icon">TU</div>
+            <div class="profile-icon"><img src="admin-avatar.jpg?v=<?= file_exists(__DIR__ . '/admin-avatar.jpg') ? filemtime(__DIR__ . '/admin-avatar.jpg') : time() ?>" alt="Admin"></div>
             <div class="sidebar-profile-info">
                 <strong><?= htmlspecialchars($nama_admin) ?></strong>
             </div>

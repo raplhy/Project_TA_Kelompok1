@@ -83,9 +83,7 @@ $area_polygon_points = round($pad_l, 1) . ',' . $baseline_y . ' ' . $polyline_po
                 <h1 class="topbar-greeting"><?= htmlspecialchars($heading_sapaan) ?></h1>
                 <div class="topbar-date"><?= $tanggal_hari_ini ?></div>
             </div>
-            <div class="topbar-profile-circle" title="<?= htmlspecialchars($nama_admin) ?>">
-                <span>TU</span>
-            </div>
+            <div class="topbar-profile-circle" title="<?= htmlspecialchars($nama_admin) ?>"><img src="admin-avatar.jpg?v=<?= file_exists('admin-avatar.jpg') ? filemtime('admin-avatar.jpg') : time() ?>" alt="Admin"></div>
         </div>
 
         <div class="statistics-5">
@@ -157,8 +155,8 @@ $area_polygon_points = round($pad_l, 1) . ',' . $baseline_y . ' ' . $polyline_po
                                             </span>
                                         </td>
                                         <td>
-                                            <strong><?= htmlspecialchars($lg['barang'] ?? $lg['keterangan']) ?></strong>
-                                            <div style="font-size: 11px; color: #6E6A63;"><?= htmlspecialchars($lg['keterangan']) ?></div>
+                                            <strong><?= htmlspecialchars($lg['barang'] ?? 'Barang Titipan') ?></strong>
+                                            <div style="font-size: 11px; color: #6E6A63;"><?= htmlspecialchars($lg['nama_admin'] ?? 'Admin') ?> &bull; <?= date('d/m/Y H:i', strtotime($lg['waktu'])) ?></div>
                                         </td>
                                         <td style="font-size: 11px; color: #9E988E; width: 65px; text-align: right;">
                                             <?= date('H:i', strtotime($lg['waktu'])) ?>

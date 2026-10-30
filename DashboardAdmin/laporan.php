@@ -1,28 +1,27 @@
 <?php
 require_once "koneksi.php";
+require_once "fungsi.php";
 
 $halaman_aktif = 'laporan';
-$nama_admin    = $_SESSION['nama_lengkap'] ?? 'Admin TU';
+$nama_admin    = $_SESSION['nama_lengkap'] ?? 'Administrator';
+
+$daftar_hari  = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+$daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+$tanggal_hari_ini = $daftar_hari[date('l')] . ', ' . date('j') . ' ' . $daftar_bulan[(int)date('n')] . ' ' . date('Y');
 
 $tab = $_GET['tab'] ?? 'rekap';
 
-// Filter untuk Tab Rekap Barang
 $tgl_awal  = trim($_GET['tgl_awal'] ?? '');
 $tgl_akhir = trim($_GET['tgl_akhir'] ?? '');
 $status    = trim($_GET['status'] ?? '');
 $kategori  = trim($_GET['kategori'] ?? '');
 
-// Filter untuk Tab Log Aktivitas
 $filter_aksi    = trim($_GET['aksi'] ?? '');
 $filter_tanggal = trim($_GET['tanggal'] ?? '');
 
-// Ambil data sesuai tab yang aktif
 $rekap_barang = ambilRekapBarang($koneksi, $mock_barang, $tgl_awal, $tgl_akhir, $status, $kategori);
 $daftar_log   = ambilLogAktivitas($koneksi, $mock_log, $filter_aksi, $filter_tanggal);
 
-// ==========================================
-// EKSPOR CSV REKAP DATA BARANG (WEEK 6)
-// ==========================================
 if (($_GET['export'] ?? '') === 'csv') {
     if ($tab === 'rekap') {
         $nama_file = 'rekap_data_barang_' . date('Ymd_His') . '.csv';
@@ -30,18 +29,15 @@ if (($_GET['export'] ?? '') === 'csv') {
         header('Content-Disposition: attachment; filename="' . $nama_file . '"');
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['No', 'Kode Barang', 'Nama Siswa', 'NIS', 'Nama Barang', 'Nomor Loker', 'Lokasi', 'Waktu Penitipan', 'Waktu Pengambilan', 'Durasi Titip', 'Status']);
+        fputcsv($output, ['No', 'Nama Barang', 'Nama Siswa', 'Nomor Loker', 'Waktu Penitipan', 'Waktu Pengambilan', 'Durasi Titip', 'Status']);
 
         $no = 1;
         foreach ($rekap_barang['data'] as $row) {
             fputcsv($output, [
                 $no++,
-                $row['kode_barang'],
-                $row['nama_siswa'],
-                $row['nis_siswa'] ?? '',
                 $row['nama_barang'],
+                $row['nama_siswa'],
                 $row['nomor_loker'],
-                $row['lokasi'] ?? 'Gedung A',
                 $row['waktu_penitipan'],
                 $row['waktu_pengambilan'] ?? '-',
                 $row['durasi'] ?? '-',
@@ -51,22 +47,20 @@ if (($_GET['export'] ?? '') === 'csv') {
         fclose($output);
         exit();
     } else {
-        // Ekspor Log Aktivitas
         $nama_file = 'laporan_log_aktivitas_' . date('Ymd_His') . '.csv';
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $nama_file . '"');
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['ID Log', 'Admin', 'Aksi', 'Barang / Objek', 'Keterangan', 'Waktu']);
+        fputcsv($output, ['ID Log', 'Admin', 'Aksi', 'Barang / Objek', 'Waktu']);
 
         $no = 1;
         foreach ($daftar_log as $row) {
             fputcsv($output, [
                 $row['id_log'] ?? $no++,
-                $row['nama_admin'] ?? 'Admin TU',
+                $row['nama_admin'] ?? 'Administrator',
                 $row['aksi'],
                 $row['barang'],
-                $row['keterangan'],
                 $row['waktu']
             ]);
         }
@@ -164,22 +158,15 @@ if (($_GET['export'] ?? '') === 'csv') {
     <?php include "sidebar.php"; ?>
 
     <main class="content">
-        <!-- Topbar -->
-        <div class="topbar">
-            <div>
-                <p class="welcome">Laporan & Rekapitulasi</p>
-                <h1>Rekap Data Barang & Statistik</h1>
+        
+        <div class="topbar-beranda">
+            <div class="topbar-left">
+                <h1 class="topbar-greeting">Laporan & Rekapitulasi</h1>
+                <div class="topbar-date"><?= $tanggal_hari_ini ?></div>
             </div>
-            <div class="profile">
-                <div class="profile-icon">TU</div>
-                <div>
-                    <strong><?= $nama_admin ?></strong>
-                    <small>Tata Usaha</small>
-                </div>
-            </div>
+            <div class="topbar-profile-circle" title="<?= htmlspecialchars($nama_admin) ?>"><img src="admin-avatar.jpg?v=<?= file_exists('admin-avatar.jpg') ? filemtime('admin-avatar.jpg') : time() ?>" alt="Admin"></div>
         </div>
 
-        <!-- Navigasi Tab: Rekap Barang vs Log Aktivitas -->
         <div class="nav-tabs no-print">
             <a href="laporan.php?tab=rekap" class="tab-btn <?= ($tab === 'rekap') ? 'active' : '' ?>">
                 Rekap Data Barang
@@ -189,38 +176,32 @@ if (($_GET['export'] ?? '') === 'csv') {
             </a>
         </div>
 
-        <!-- Header khusus saat dicetak (Print View) -->
         <div class="print-header" style="display: none;">
             <h2 style="font-size: 18px; margin-bottom: 4px;">LAPORAN REKAPITULASI PENITIPAN BARANG LOKER SEKOLAH</h2>
             <p style="font-size: 12px; color: #555;">Dicetak pada: <?= date('d/m/Y H:i') ?> WIB | Oleh: <?= htmlspecialchars($nama_admin) ?></p>
         </div>
 
         <?php if ($tab === 'rekap'): ?>
-            <!-- ========================================== -->
-            <!-- TAB 1: REKAP DATA BARANG DAN STATISTIK     -->
-            <!-- ========================================== -->
-
-            <!-- 1. Statistik Ringkasan Periode Terpilih -->
+            
             <div class="statistics">
                 <div class="stat-card">
-                    <div class="stat-title">Total Rekap</div>
+                    <div class="stat-title">TOTAL REKAP</div>
                     <div class="stat-value"><?= $rekap_barang['total'] ?></div>
                 </div>
-                <div class="stat-card highlight">
-                    <div class="stat-title">Masih Tersimpan</div>
+                <div class="stat-card">
+                    <div class="stat-title">MASIH TERSIMPAN</div>
                     <div class="stat-value"><?= $rekap_barang['tersimpan'] ?></div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Sudah Diambil</div>
+                    <div class="stat-title">SUDAH DIAMBIL</div>
                     <div class="stat-value"><?= $rekap_barang['diambil'] ?></div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Tingkat Diambil</div>
-                    <div class="stat-value"><?= $rekap_barang['persen_diambil'] ?>%</div>
+                    <div class="stat-title">SISWA PENITIP</div>
+                    <div class="stat-value"><?= $rekap_barang['total_siswa'] ?></div>
                 </div>
             </div>
 
-            <!-- 2. Statistik Kategori Barang Terpopuler -->
             <?php if (!empty($rekap_barang['kategori_populer'])): ?>
                 <div class="card no-print">
                     <div class="card-header">
@@ -249,37 +230,30 @@ if (($_GET['export'] ?? '') === 'csv') {
                 </div>
             <?php endif; ?>
 
-            <!-- 3. Filter Rekap & Tabel -->
             <div class="card">
                 <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
-                    <!-- Form Filter Tanggal & Status -->
+                    
                     <form method="GET" action="laporan.php" class="filter-bar" style="margin-bottom: 0;">
                         <input type="hidden" name="tab" value="rekap">
 
-                        <input type="date" name="tgl_awal" class="form-control" value="<?= htmlspecialchars($tgl_awal) ?>" title="Tanggal Mulai">
+                        <input type="date" name="tgl_awal" class="form-control" value="<?= htmlspecialchars($tgl_awal) ?>" title="Tanggal Mulai" onchange="this.form.submit()">
                         <span style="color: #6E6A63;">s/d</span>
-                        <input type="date" name="tgl_akhir" class="form-control" value="<?= htmlspecialchars($tgl_akhir) ?>" title="Tanggal Akhir">
+                        <input type="date" name="tgl_akhir" class="form-control" value="<?= htmlspecialchars($tgl_akhir) ?>" title="Tanggal Akhir" onchange="this.form.submit()">
 
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-control" onchange="this.form.submit()">
                             <option value="">Semua Status</option>
                             <option value="Tersimpan" <?= ($status === 'Tersimpan') ? 'selected' : '' ?>>Tersimpan</option>
                             <option value="Sudah diambil" <?= ($status === 'Sudah diambil') ? 'selected' : '' ?>>Sudah diambil</option>
                         </select>
 
-                        <select name="kategori" class="form-control">
+                        <select name="kategori" class="form-control" onchange="this.form.submit()">
                             <option value="">Semua Kategori</option>
                             <?php foreach (['Tas', 'Helm', 'Jaket', 'Laptop', 'Sepatu', 'Buku', 'Botol'] as $opt_k): ?>
                                 <option value="<?= $opt_k ?>" <?= ($kategori === $opt_k) ? 'selected' : '' ?>><?= $opt_k ?></option>
                             <?php endforeach; ?>
                         </select>
-
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <?php if ($tgl_awal !== '' || $tgl_akhir !== '' || $status !== '' || $kategori !== ''): ?>
-                            <a href="laporan.php?tab=rekap" class="btn btn-secondary">Reset</a>
-                        <?php endif; ?>
                     </form>
 
-                    <!-- Tombol Aksi Ekspor CSV & Cetak -->
                     <div style="display: flex; gap: 8px;">
                         <a href="laporan.php?tab=rekap&export=csv&tgl_awal=<?= urlencode($tgl_awal) ?>&tgl_akhir=<?= urlencode($tgl_akhir) ?>&status=<?= urlencode($status) ?>&kategori=<?= urlencode($kategori) ?>" class="btn btn-secondary">
                             Ekspor CSV
@@ -290,20 +264,18 @@ if (($_GET['export'] ?? '') === 'csv') {
                     </div>
                 </div>
 
-                <!-- Tabel Rekap Data Barang -->
                 <div class="table-container">
-                    <table>
+                    <table class="table-bordered">
                         <thead>
                             <tr>
-                                <th style="width: 35px; text-align: center;">No</th>
-                                <th>Kode</th>
-                                <th>Nama Barang</th>
-                                <th>Siswa</th>
-                                <th>Loker</th>
-                                <th>Waktu Titip</th>
-                                <th>Waktu Ambil</th>
-                                <th>Durasi</th>
-                                <th>Status</th>
+                                <th style="width: 45px; text-align: center;">No</th>
+                                <th style="text-align: center;">Nama Barang</th>
+                                <th style="text-align: center;">Siswa Pemilik</th>
+                                <th style="text-align: center;">Loker</th>
+                                <th style="text-align: center;">Waktu Penitipan</th>
+                                <th style="text-align: center;">Waktu Pengambilan</th>
+                                <th style="text-align: center;">Durasi</th>
+                                <th style="text-align: center;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -311,22 +283,15 @@ if (($_GET['export'] ?? '') === 'csv') {
                                 <?php $no = 1; foreach ($rekap_barang['data'] as $b): ?>
                                     <tr>
                                         <td style="text-align: center; color: #9E988E;"><?= $no++ ?></td>
-                                        <td><span class="badge badge-kode"><?= htmlspecialchars($b['kode_barang']) ?></span></td>
-                                        <td><strong><?= htmlspecialchars($b['nama_barang']) ?></strong></td>
-                                        <td>
-                                            <?= htmlspecialchars($b['nama_siswa']) ?>
-                                            <?php if (!empty($b['nis_siswa'])): ?>
-                                                <div style="font-size: 11px; color: #9E988E;"><?= htmlspecialchars($b['nis_siswa']) ?></div>
-                                            <?php endif; ?>
+                                        <td style="text-align: center;"><strong><?= htmlspecialchars($b['nama_barang']) ?></strong></td>
+                                        <td style="text-align: center;"><?= htmlspecialchars($b['nama_siswa']) ?></td>
+                                        <td style="text-align: center;">
+                                            <span class="badge badge-kode"><?= htmlspecialchars($b['nomor_loker']) ?></span>
                                         </td>
-                                        <td>
-                                            <span class="badge badge-terisi"><?= htmlspecialchars($b['nomor_loker']) ?></span>
-                                            <div style="font-size: 10px; color: #6E6A63;"><?= htmlspecialchars($b['lokasi'] ?? '') ?></div>
-                                        </td>
-                                        <td style="color: #6E6A63; font-size: 12px;"><?= htmlspecialchars($b['waktu_penitipan']) ?></td>
-                                        <td style="color: #6E6A63; font-size: 12px;"><?= !empty($b['waktu_pengambilan']) ? htmlspecialchars($b['waktu_pengambilan']) : '-' ?></td>
-                                        <td style="color: #6E6A63; font-size: 12px;"><?= htmlspecialchars($b['durasi'] ?? '-') ?></td>
-                                        <td>
+                                        <td style="text-align: center; color: #6E6A63; font-size: 12px; white-space: nowrap;"><?= htmlspecialchars($b['waktu_penitipan']) ?></td>
+                                        <td style="text-align: center; color: #6E6A63; font-size: 12px; white-space: nowrap;"><?= !empty($b['waktu_pengambilan']) ? htmlspecialchars($b['waktu_pengambilan']) : '-' ?></td>
+                                        <td style="text-align: center; color: #6E6A63; font-size: 12px;"><?= htmlspecialchars($b['durasi'] ?? '-') ?></td>
+                                        <td style="text-align: center;">
                                             <?php if ($b['status'] === 'Tersimpan'): ?>
                                                 <span class="badge badge-tersimpan">Tersimpan</span>
                                             <?php else: ?>
@@ -337,7 +302,7 @@ if (($_GET['export'] ?? '') === 'csv') {
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" style="text-align: center; color: #9E988E; padding: 25px;">
+                                    <td colspan="8" style="text-align: center; color: #9E988E; padding: 25px;">
                                         Tidak ada data barang pada periode filter yang dipilih.
                                     </td>
                                 </tr>
@@ -348,27 +313,20 @@ if (($_GET['export'] ?? '') === 'csv') {
             </div>
 
         <?php else: ?>
-            <!-- ========================================== -->
-            <!-- TAB 2: LOG AKTIVITAS SISTEM                -->
-            <!-- ========================================== -->
+            
             <div class="card">
                 <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
                     <form method="GET" action="laporan.php" class="filter-bar" style="margin-bottom: 0;">
                         <input type="hidden" name="tab" value="log">
 
-                        <select name="aksi" class="form-control">
+                        <select name="aksi" class="form-control" onchange="this.form.submit()">
                             <option value="">Semua Aksi</option>
                             <option value="Tambah" <?= ($filter_aksi === 'Tambah') ? 'selected' : '' ?>>Tambah</option>
                             <option value="Ubah" <?= ($filter_aksi === 'Ubah') ? 'selected' : '' ?>>Ubah</option>
                             <option value="Hapus" <?= ($filter_aksi === 'Hapus') ? 'selected' : '' ?>>Hapus</option>
                         </select>
 
-                        <input type="date" name="tanggal" class="form-control" value="<?= htmlspecialchars($filter_tanggal) ?>">
-
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <?php if ($filter_aksi !== '' || $filter_tanggal !== ''): ?>
-                            <a href="laporan.php?tab=log" class="btn btn-secondary">Reset</a>
-                        <?php endif; ?>
+                        <input type="date" name="tanggal" class="form-control" value="<?= htmlspecialchars($filter_tanggal) ?>" onchange="this.form.submit()">
                     </form>
 
                     <a href="laporan.php?tab=log&export=csv&aksi=<?= urlencode($filter_aksi) ?>&tanggal=<?= urlencode($filter_tanggal) ?>" class="btn btn-secondary">
@@ -377,24 +335,23 @@ if (($_GET['export'] ?? '') === 'csv') {
                 </div>
 
                 <div class="table-container">
-                    <table>
+                    <table class="table-bordered">
                         <thead>
                             <tr>
-                                <th style="width: 60px;">ID Log</th>
-                                <th>Admin</th>
-                                <th>Aksi</th>
-                                <th>Barang / Objek</th>
-                                <th>Keterangan</th>
-                                <th>Waktu</th>
+                                <th style="width: 80px; text-align: center;">ID Log</th>
+                                <th style="text-align: center;">Admin</th>
+                                <th style="text-align: center;">Aksi</th>
+                                <th style="text-align: center;">Barang / Objek</th>
+                                <th style="text-align: center;">Waktu</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!empty($daftar_log)): ?>
                                 <?php foreach ($daftar_log as $lg): ?>
                                     <tr>
-                                        <td><span class="badge badge-kode">#<?= htmlspecialchars($lg['id_log']) ?></span></td>
-                                        <td><strong><?= htmlspecialchars($lg['nama_admin'] ?? 'Admin TU') ?></strong></td>
-                                        <td>
+                                        <td style="text-align: center;"><span class="badge badge-kode">#<?= htmlspecialchars($lg['id_log']) ?></span></td>
+                                        <td style="text-align: center;"><strong><?= htmlspecialchars($lg['nama_admin'] ?? 'Administrator') ?></strong></td>
+                                        <td style="text-align: center;">
                                             <?php 
                                                 $badge_aksi = 'badge-terisi';
                                                 if ($lg['aksi'] === 'Tambah') $badge_aksi = 'badge-tersimpan';
@@ -402,14 +359,13 @@ if (($_GET['export'] ?? '') === 'csv') {
                                             ?>
                                             <span class="badge <?= $badge_aksi ?>"><?= htmlspecialchars($lg['aksi']) ?></span>
                                         </td>
-                                        <td><strong><?= htmlspecialchars($lg['barang']) ?></strong></td>
-                                        <td style="color: #6E6A63;"><?= htmlspecialchars($lg['keterangan']) ?></td>
-                                        <td style="color: #9E988E; font-size: 12px; white-space: nowrap;"><?= htmlspecialchars($lg['waktu']) ?></td>
+                                        <td style="text-align: center;"><strong><?= htmlspecialchars($lg['barang']) ?></strong></td>
+                                        <td style="text-align: center; color: #9E988E; font-size: 12px; white-space: nowrap;"><?= htmlspecialchars($lg['waktu']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" style="text-align: center; color: #9E988E; padding: 25px;">
+                                    <td colspan="5" style="text-align: center; color: #9E988E; padding: 25px;">
                                         Tidak ada catatan log aktivitas.
                                     </td>
                                 </tr>

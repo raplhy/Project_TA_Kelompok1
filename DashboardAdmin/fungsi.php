@@ -28,7 +28,6 @@ foreach (['A' => 'Gedung A', 'B' => 'Gedung B', 'C' => 'Gedung C', 'D' => 'Gedun
             'id_gedung'   => ord($kode_g) - 64,
             'lokasi'      => $nama_g,
             'nama_gedung' => $nama_g,
-            'kapasitas'   => 5,
             'terisi'      => 0,
             'status'      => 'Kosong'
         ];
@@ -141,14 +140,13 @@ function ambilDaftarLoker($koneksi, $mock_loker) {
                 LEFT JOIN gedung g ON l.id_gedung = g.id_gedung
                 LEFT JOIN barang b ON l.id_loker = b.id_loker AND b.status = 'Tersimpan'
                 GROUP BY l.id_loker
-                ORDER BY l.id_loker ASC";
+                ORDER BY l.nomor_loker ASC, l.id_loker ASC";
         $q = mysqli_query($koneksi, $sql);
 
         if ($q && mysqli_num_rows($q) > 0) {
             $data = [];
             while ($r = mysqli_fetch_assoc($q)) {
                 $terisi = (int)$r['terisi'];
-                $r['kapasitas'] = 5;
                 $r['lokasi']    = trim($r['nama_gedung'] ?? 'Gedung A');
 
                 if ($terisi > 0) $r['status'] = 'Terisi';
@@ -167,7 +165,7 @@ function ambilDaftarBarang($koneksi, $mock_barang, $cari = '', $filter_status = 
         $kondisi = "WHERE 1=1";
         if ($cari !== '') {
             $c = mysqli_real_escape_string($koneksi, $cari);
-            $kondisi .= " AND (b.nama_barang LIKE '%$c%' OR b.kode_barang LIKE '%$c%' OR u.nama_lengkap LIKE '%$c%' OR l.nomor_loker LIKE '%$c%')";
+            $kondisi .= " AND (b.nama_barang LIKE '%$c%' OR u.nama_lengkap LIKE '%$c%' OR u.username LIKE '%$c%' OR l.nomor_loker LIKE '%$c%')";
         }
         if ($filter_status !== '') {
             $s = mysqli_real_escape_string($koneksi, $filter_status);
@@ -206,7 +204,7 @@ function ambilLogAktivitas($koneksi, $mock_log, $filter_aksi = '', $filter_tangg
             $kondisi .= " AND DATE(l.waktu) = '$t'";
         }
 
-        $sql = "SELECT l.*, u.nama_lengkap AS nama_admin, b.nama_barang, b.kode_barang 
+        $sql = "SELECT l.*, u.nama_lengkap AS nama_admin, b.nama_barang 
                 FROM log_aktivitas l 
                 LEFT JOIN users u ON l.id_admin = u.id_user 
                 LEFT JOIN barang b ON l.id_barang_terkait = b.id_barang 
@@ -217,9 +215,9 @@ function ambilLogAktivitas($koneksi, $mock_log, $filter_aksi = '', $filter_tangg
             $data = [];
             while ($r = mysqli_fetch_assoc($q)) {
                 if (!empty($r['nama_barang'])) {
-                    $r['barang'] = $r['nama_barang'] . ' (' . $r['kode_barang'] . ')';
+                    $r['barang'] = $r['nama_barang'];
                 } else {
-                    $r['barang'] = $r['keterangan'];
+                    $r['barang'] = 'Barang Titipan';
                 }
                 $data[] = $r;
             }
@@ -299,14 +297,21 @@ function ambilRekapBarang($koneksi, $mock_barang, $tgl_awal = '', $tgl_akhir = '
 
     arsort($kategori_hitung);
     $total = count($data);
-    $persen_diambil = ($total > 0) ? round(($diambil / $total) * 100, 1) : 0;
+
+    $siswa_unik = [];
+    foreach ($data as $r) {
+        $nama_s = trim($r['nama_siswa'] ?? '');
+        if ($nama_s !== '') $siswa_unik[$nama_s] = true;
+        elseif (!empty($r['id_siswa'])) $siswa_unik['id_' . $r['id_siswa']] = true;
+    }
+    $total_siswa = count($siswa_unik);
 
     return [
         'data'             => $data,
         'total'            => $total,
         'tersimpan'        => $tersimpan,
         'diambil'          => $diambil,
-        'persen_diambil'   => $persen_diambil,
+        'total_siswa'      => $total_siswa,
         'kategori_populer' => $kategori_hitung
     ];
 }

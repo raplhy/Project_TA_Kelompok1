@@ -93,34 +93,18 @@ if (!move_uploaded_file($file_tmp, "uploads/" . $nama_file_foto)) {
     kembaliError("Gagal mengupload file foto.");
 }
 
-$qLoker = mysqli_query($koneksi, "SELECT nomor_loker FROM loker WHERE id_loker = '$id_loker'");
-$dLoker = mysqli_fetch_assoc($qLoker);
-$nomor_loker = $dLoker['nomor_loker'] ?? 'LK';
-
-$qHitung = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM barang WHERE id_loker = '$id_loker'");
-$urutan  = mysqli_fetch_assoc($qHitung)['total'] + 1;
-
 foreach ($daftar_barang as $nama_item) {
     $nama_bersih = mysqli_real_escape_string($koneksi, $nama_item);
-    $kode_barang = $nomor_loker . '-' . sprintf("%04d", $urutan);
-
-    $cekKode = mysqli_query($koneksi, "SELECT id_barang FROM barang WHERE kode_barang = '$kode_barang'");
-    while (mysqli_num_rows($cekKode) > 0) {
-        $urutan++;
-        $kode_barang = $nomor_loker . '-' . sprintf("%04d", $urutan);
-        $cekKode = mysqli_query($koneksi, "SELECT id_barang FROM barang WHERE kode_barang = '$kode_barang'");
-    }
 
     mysqli_query($koneksi, "INSERT INTO barang 
-        (kode_barang, id_siswa, id_loker, nama_barang, foto_barang, waktu_penitipan, status, waktu_pengambilan) 
+        (id_siswa, id_loker, nama_barang, foto_barang, waktu_penitipan, status, waktu_pengambilan) 
         VALUES 
-        ('$kode_barang', '$id_siswa', '$id_loker', '$nama_bersih', '$nama_file_foto', NOW(), 'Tersimpan', NULL)");
+        ('$id_siswa', '$id_loker', '$nama_bersih', '$nama_file_foto', NOW(), 'Tersimpan', NULL)");
     
     $id_baru = mysqli_insert_id($koneksi);
-    @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, keterangan, waktu) 
-        VALUES (1, 'Tambah', '$id_baru', 'Menambahkan barang $nama_bersih ($kode_barang)', NOW())");
-    
-    $urutan++;
+    $id_admin = (int)($_SESSION['id_user'] ?? 30);
+    @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, waktu) 
+        VALUES ('$id_admin', 'Tambah', '$id_baru', NOW())");
 }
 
 mysqli_query($koneksi, "UPDATE loker SET status = 'Terisi' WHERE id_loker = '$id_loker'");

@@ -197,9 +197,9 @@ body {
 
 .badge {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 4px 9px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
 }
 
@@ -217,12 +217,24 @@ body {
 
 .badge-kode {
     background-color: #EFECE4;
-    color: #1E1D1B;
+    color: #181715;
     border: 1px solid #D8D2C7;
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: 4px;
     font-weight: bold;
     font-size: 12px;
+    display: inline-block;
+}
+
+.badge-secondary {
+    background-color: #FAF8F5;
+    border: 1px solid #E8E3D9;
+    color: #9E988E;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    display: inline-block;
 }
 
 .toolbar {
@@ -370,6 +382,7 @@ table tr:hover {
     border-radius: 4px;
     border: 1px solid #D8D2C7;
     display: block;
+    margin: 0 auto;
 }
 
 .detail-box {
@@ -395,4 +408,20 @@ table tr:hover {
 .detail-info {
     flex: 1;
     min-width: 280px;
+}
+
+.table-bordered {
+    border: 1px solid #E8E3D9;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border-right: 1px solid #E8E3D9;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table-bordered th:last-child,
+.table-bordered td:last-child {
+    border-right: none;
 }

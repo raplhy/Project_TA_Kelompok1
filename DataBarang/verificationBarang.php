@@ -24,9 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['konfirmasi_ambil'])) 
     mysqli_query($koneksi, "UPDATE barang SET status = 'Sudah diambil', waktu_pengambilan = NOW() WHERE id_barang = '$id'");
 
     $nama_verif = mysqli_real_escape_string($koneksi, $barang['nama_barang'] ?? 'Barang');
-    $kode_verif = $barang['kode_barang'] ?? '';
-    @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, keterangan, waktu) 
-        VALUES (1, 'Ubah', '$id', 'Verifikasi barang $nama_verif ($kode_verif) sudah diambil', NOW())");
+        $id_admin = (int)($_SESSION['id_user'] ?? 30);
+    @mysqli_query($koneksi, "INSERT INTO log_aktivitas (id_admin, aksi, id_barang_terkait, waktu) 
+        VALUES ('$id_admin', 'Ubah', '$id', NOW())");
 
     $cekSisa = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM barang WHERE id_loker = '$id_loker' AND status = 'Tersimpan'");
     $sisa    = mysqli_fetch_assoc($cekSisa)['total'];
@@ -56,7 +56,6 @@ $ada_foto  = (!empty($barang['foto_barang']) && file_exists($path_foto));
     <div class="header-box">
         <div>
             <h2>Verifikasi & Pengambilan Barang</h2>
-            <p>Cocokkan bukti foto barang dengan kondisi fisik sebelum diserahkan ke siswa</p>
         </div>
         <a href="indexBarang.php" class="btn btn-secondary">Kembali</a>
     </div>
@@ -65,7 +64,6 @@ $ada_foto  = (!empty($barang['foto_barang']) && file_exists($path_foto));
         <div class="detail-box">
             
             <div class="detail-foto">
-                <p style="font-weight: bold; margin-bottom: 8px; font-size: 13px;">Bukti Foto Penitipan:</p>
                 <?php if ($ada_foto): ?>
                     <img src="<?= $path_foto ?>" alt="Bukti Foto">
                 <?php else: ?>
@@ -76,10 +74,6 @@ $ada_foto  = (!empty($barang['foto_barang']) && file_exists($path_foto));
             <div class="detail-info">
                 <table>
                     <tr>
-                        <th style="width: 150px;">Kode Barang</th>
-                        <td><span class="badge-kode"><?= $barang['kode_barang'] ?></span></td>
-                    </tr>
-                    <tr>
                         <th>Nama Barang</th>
                         <td><strong><?= $barang['nama_barang'] ?></strong></td>
                     </tr>
@@ -89,7 +83,7 @@ $ada_foto  = (!empty($barang['foto_barang']) && file_exists($path_foto));
                     </tr>
                     <tr>
                         <th>Loker</th>
-                        <td>Loker <?= $barang['nomor_loker'] ?? '-' ?> - Lokasi: <?= $barang['lokasi'] ?? '-' ?></td>
+                        <td>Loker <?= $barang['nomor_loker'] ?? '-' ?></td>
                     </tr>
                     <tr>
                         <th>Waktu Penitipan</th>
@@ -115,13 +109,10 @@ $ada_foto  = (!empty($barang['foto_barang']) && file_exists($path_foto));
 
                 <div style="margin-top: 20px; padding: 14px; background-color: #FAF8F5; border: 1px solid #E8E3D9; border-radius: 4px;">
                     <?php if ($barang['status'] == 'Tersimpan'): ?>
-                        <p style="font-size: 13px; margin-bottom: 10px; color: #6E6A63;">
-                            Konfirmasi bahwa barang fisik di loker sudah sesuai dengan foto dan telah diserahkan kepada siswa:
-                        </p>
                         <form action="verificationBarang.php" method="POST" onsubmit="return confirm('Apakah Anda yakin barang ini sudah diambil oleh siswa?')">
                             <input type="hidden" name="id" value="<?= $barang['id_barang'] ?>">
                             <button type="submit" name="konfirmasi_ambil" value="1" class="btn btn-success">
-                                Tandai Barang Sudah Diambil
+                                Ambil Barang
                             </button>
                             <a href="indexBarang.php" class="btn btn-secondary">Batal</a>
                         </form>
