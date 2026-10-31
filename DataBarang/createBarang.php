@@ -40,7 +40,6 @@ $daftarBarang = ["Tas", "Jaket", "Helm", "Laptop", "Sepatu", "Buku", "Botol", "L
     <div class="header-box">
         <div>
             <h2>Tambah Penitipan Barang</h2>
-            <p>Formulir pencatatan barang siswa yang dititipkan di loker</p>
         </div>
         <div>
             <a href="indexBarang.php" class="btn btn-secondary">Kembali</a>
@@ -102,7 +101,7 @@ $daftarBarang = ["Tas", "Jaket", "Helm", "Laptop", "Sepatu", "Buku", "Botol", "L
                         </div>
                     <?php endfor; ?>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="tambahBarang()">+ Tambah Barang</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="tambahBarang()">Tambah Barang</button>
             </div>
 
             <div class="form-actions">

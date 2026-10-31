@@ -538,7 +538,7 @@ if ($koneksi) {
                                         <td style="text-align: center; color: #6E6A63; font-size: 12px; white-space: nowrap;">
                                             <?= !empty($b['waktu_pengambilan']) ? date('d/m/Y H:i', strtotime($b['waktu_pengambilan'])) : '<span style="color: #9E988E;">-</span>' ?>
                                         </td>
-                                        <td style="text-align: center;">
+                                        <td style="text-align: center; white-space: nowrap;">
                                             <?php if ($b['status'] === 'Tersimpan'): ?>
                                                 <span class="badge badge-tersimpan">Tersimpan</span>
                                             <?php else: ?>

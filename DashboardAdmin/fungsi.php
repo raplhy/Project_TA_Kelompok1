@@ -204,26 +204,28 @@ function ambilLogAktivitas($koneksi, $mock_log, $filter_aksi = '', $filter_tangg
             $kondisi .= " AND DATE(l.waktu) = '$t'";
         }
 
-        $sql = "SELECT l.*, u.nama_lengkap AS nama_admin, b.nama_barang 
-                FROM log_aktivitas l 
-                LEFT JOIN users u ON l.id_admin = u.id_user 
-                LEFT JOIN barang b ON l.id_barang_terkait = b.id_barang 
-                $kondisi ORDER BY l.id_log DESC";
-        $q = mysqli_query($koneksi, $sql);
-
-        if ($q) {
-            $data = [];
-            while ($r = mysqli_fetch_assoc($q)) {
-                if (!empty($r['nama_barang'])) {
-                    $r['barang'] = $r['nama_barang'];
-                } else {
-                    $r['barang'] = 'Barang Titipan';
-                }
-                $data[] = $r;
-            }
-            return $data;
-        }
-    }
+        $sql = "SELECT l.*, u.nama_lengkap AS nama_pengguna, u.role, b.nama_barang 
+                FROM log_aktivitas l 
+                LEFT JOIN users u ON l.id_admin = u.id_user 
+                LEFT JOIN barang b ON l.id_barang_terkait = b.id_barang 
+                $kondisi ORDER BY l.id_log DESC";
+        $q = mysqli_query($koneksi, $sql);
+
+        if ($q) {
+            $data = [];
+            while ($r = mysqli_fetch_assoc($q)) {
+                $r['nama_admin'] = $r['nama_pengguna'] ?? 'Administrator';
+                $r['role']       = $r['role'] ?? 'admin';
+                if (!empty($r['nama_barang'])) {
+                    $r['barang'] = $r['nama_barang'];
+                } else {
+                    $r['barang'] = 'Barang';
+                }
+                $data[] = $r;
+            }
+            return $data;
+        }
+    }
     return $mock_log;
 }
 

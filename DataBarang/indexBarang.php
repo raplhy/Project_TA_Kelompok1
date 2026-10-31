@@ -105,7 +105,7 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
             <h2>Penitipan Barang Siswa</h2>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a href="createBarang.php" class="btn btn-primary">+ Tambah Barang</a>
+            <a href="createBarang.php" class="btn btn-primary">Tambah Barang</a>
         </div>
     </div>
 
@@ -183,7 +183,7 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
                             <th style="width: 65px; text-align: center;">Foto</th>
                             <th style="text-align: center;">Nama Barang</th>
                             <th style="width: 90px; text-align: center;">Loker</th>
-                            <th style="width: 120px; text-align: center;">Status</th>
+                            <th style="width: 115px; text-align: center;">Status</th>
                             <th style="width: 145px; text-align: center;">Waktu Penitipan</th>
                             <th style="width: 145px; text-align: center;">Waktu Pengambilan</th>
                             <th style="width: 130px; text-align: center;">Aksi</th>
@@ -226,7 +226,7 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
                                         <span class="badge badge-secondary">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td style="text-align: center;">
+                                <td style="text-align: center; white-space: nowrap;">
                                     <?php if ($row['status'] == 'Tersimpan'): ?>
                                         <span class="badge badge-tersimpan">Tersimpan</span>
                                     <?php else: ?>
@@ -251,7 +251,7 @@ $c_diambil   = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_barang FROM bar
                         <?php else: ?>
                             <tr id="barisKosongPhp">
                                 <td colspan="9" style="text-align: center; padding: 30px; color: #6E6A63;">
-                                    Belum ada data barang. Silakan klik tombol <strong>+ Tambah Barang</strong>.
+                                    Belum ada data barang. Silakan klik tombol <strong>Tambah Barang</strong>.
                                 </td>
                             </tr>
                         <?php endif; ?>
