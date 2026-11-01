@@ -24,9 +24,9 @@ unset($_SESSION['form_username']);
     <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
 
-    /* BACKGROUND PUTIH seperti login siswa */
+    /* BACKGROUND KREM (Sama seperti Dashboard) */
     body {
-        background-color: #f1f5f9;
+        background-color: #F4EFE6;
         min-height: 100vh;
         display: flex;
         align-items: center;
@@ -34,14 +34,14 @@ unset($_SESSION['form_username']);
         padding: 20px;
     }
 
-    /* Kotak login tetap GELAP */
+    /* Kotak login PUTIH BERSIH */
     .card-login {
         width: 100%;
         max-width: 450px;
-        background: #1e293b;
+        background: #FFFFFF;
         border-radius: 12px;
-        border: 1px solid #334155;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        border: 1px solid #E8E3D9;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -69,7 +69,7 @@ unset($_SESSION['form_username']);
     .card-header-custom h1 {
         font-size: 18px;
         font-weight: 800;
-        color: #f1f5f9;
+        color: #181715; /* Teks Gelap */
         line-height: 1.3;
         letter-spacing: 0.5px;
         text-transform: uppercase;
@@ -79,18 +79,18 @@ unset($_SESSION['form_username']);
         width: 100%;
     }
 
-    .card-header-custom h1 span { color: #AFDDFF; }
+    .card-header-custom h1 span { color: #E04F16; } /* Aksen Oranye */
 
     .role-title {
         width: 100%;
         padding: 12px;
-        background: #0f233a;
-        border-top: 1px solid #1e3a5f;
-        border-bottom: 1px solid #1e3a5f;
+        background: #FAF8F5; /* Krem muda */
+        border-top: 1px solid #E8E3D9;
+        border-bottom: 1px solid #E8E3D9;
         text-align: center;
         font-size: 13px;
         font-weight: 700;
-        color: #AFDDFF;
+        color: #C85A17; /* Coklat Oranye */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -103,41 +103,47 @@ unset($_SESSION['form_username']);
     }
 
     .alert-error {
-        background: #450a0a; border: 1px solid #991b1b; color: #fca5a5;
+        background: #F9E2DF; border: 1px solid #DFA69F; color: #B8473E;
         padding: 10px; border-radius: 6px; font-size: 12px;
         margin-bottom: 15px; text-align: center;
     }
 
     .form-group { margin-bottom: 15px; width: 100%; }
+    
     .form-group label {
         display: block; font-size: 12px; font-weight: 600;
-        color: #cbd5e1; margin-bottom: 6px;
+        color: #1E1D1B; margin-bottom: 6px;
     }
 
     .input-group { position: relative; display: flex; align-items: center; width: 100%; }
+    
     .input-group i {
-        position: absolute; left: 12px; color: #64748b; font-size: 13px;
+        position: absolute; left: 12px; color: #9E988E; font-size: 13px;
     }
+    
     .input-control {
         width: 100%; padding: 10px 12px 10px 35px;
-        font-size: 13px; border: 1px solid #334155;
+        font-size: 13px; border: 1px solid #D8D2C7;
         border-radius: 6px; outline: none;
-        color: #f1f5f9; background: #0f172a;
+        color: #1E1D1B; background: #FFFFFF;
     }
-    .input-control:focus { border-color: #AFDDFF; background: #0f172a; }
-    .input-control::placeholder { color: #475569; }
+    
+    .input-control:focus { border-color: #E04F16; background: #FFFFFF; }
+    
+    .input-control::placeholder { color: #9E988E; }
 
     .btn-submit {
-        width: 100%; padding: 11px; background: #AFDDFF;
-        color: #0f233a; border: none; border-radius: 6px;
+        width: 100%; padding: 11px; background: #E04F16; /* Tombol Oranye */
+        color: #FFFFFF; border: none; border-radius: 6px;
         font-size: 13px; font-weight: 700; cursor: pointer;
-        margin-top: 10px; transition: opacity 0.2s;
+        margin-top: 10px; transition: background 0.2s;
     }
-    .btn-submit:hover { opacity: 0.9; }
+    
+    .btn-submit:hover { background: #C84310; }
 
     .card-footer-custom {
         width: 100%; padding: 15px 35px 25px 35px;
-        text-align: center; font-size: 11px; color: #475569;
+        text-align: center; font-size: 11px; color: #9E988E;
     }
     </style>
 </head>
@@ -199,4 +205,4 @@ unset($_SESSION['form_username']);
     </div>
 
 </body>
-</html>
+</html> 
