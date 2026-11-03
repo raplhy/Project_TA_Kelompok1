@@ -221,9 +221,15 @@ $page_title = $page_title ?? 'Dashboard';
         
         <div class="profile-dropdown-container" id="profileDropdownContainer">
             <div class="profile-btn" onclick="toggleDropdown()">
+                <!-- BAGIAN YANG DIUBAH: NAMPILIN FOTO ASLI JIKA ADA -->
                 <div class="avatar-circle">
-                    <?php echo $inisial; ?>
+                    <?php if (!empty($foto_user) && file_exists(__DIR__ . '/uploads/' . $foto_user)): ?>
+                        <img src="uploads/<?php echo htmlspecialchars($foto_user); ?>" alt="Profile">
+                    <?php else: ?>
+                        <?php echo $inisial; ?>
+                    <?php endif; ?>
                 </div>
+                
                 <div class="user-details">
                     <div class="user-name"><?php echo htmlspecialchars($nama_lengkap); ?></div>
                     <div class="role-badge"><?php echo htmlspecialchars($role); ?></div>

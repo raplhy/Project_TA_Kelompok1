@@ -16,27 +16,82 @@ $id_user = $_SESSION['id_user'];
 // 2. PROSES SIMPAN EDIT PROFIL (JIKA ADA POST)
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profil'])) {
+    
+    // Ambil data lama dulu untuk pembanding
+    $q_lama = mysqli_query($koneksi, "SELECT email, no_hp, foto FROM users WHERE id_user = '$id_user'");
+    $data_lama = mysqli_fetch_assoc($q_lama);
+
     $email         = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
     $no_hp         = mysqli_real_escape_string($koneksi, $_POST['no_hp'] ?? '');
     $password_baru = $_POST['password_baru'] ?? '';
+    
+    $update_foto   = ""; 
+    $foto_diupload = false;
 
-    // Query default (update email & no hp)
-    $query = "UPDATE users SET email = '$email', no_hp = '$no_hp' WHERE id_user = '$id_user'";
+    // Cek apakah ada foto baru yang di-upload
+    if (isset($_FILES['foto_profil']) && $_FILES['foto_profil']['error'] === 0) {
+        $folder_upload = "uploads/";
+        if (!is_dir($folder_upload)) {
+            mkdir($folder_upload, 0777, true);
+        }
 
-    // Kalau password diisi, update password juga
+        $nama_file = time() . '_' . basename($_FILES["foto_profil"]["name"]);
+        $target_file = $folder_upload . $nama_file;
+        $ekstensi = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+        if (in_array($ekstensi, ['jpg', 'jpeg', 'png', 'webp'])) {
+            if (move_uploaded_file($_FILES["foto_profil"]["tmp_name"], $target_file)) {
+                $update_foto = ", foto = '$nama_file'"; 
+                $foto_diupload = true;
+            }
+        }
+    }
+
+    // LOGIKA PESAN NOTIFIKASI YANG LEBIH CERDAS & SPESIFIK
+    $pesan_sukses = [];
+    
+    // Cek apakah email berubah
+    if (!empty($email) && $email !== $data_lama['email']) {
+        $pesan_sukses[] = "Email berhasil ditambahkan/diperbarui";
+    }
+    
+    // Cek apakah no_hp berubah
+    if (!empty($no_hp) && $no_hp !== $data_lama['no_hp']) {
+        $pesan_sukses[] = "No. WhatsApp berhasil ditambahkan/diperbarui";
+    }
+
+    // Cek apakah password diisi
     if (!empty($password_baru)) {
         $pass_hash = password_hash($password_baru, PASSWORD_DEFAULT);
-        $query = "UPDATE users SET email = '$email', no_hp = '$no_hp', password = '$pass_hash' WHERE id_user = '$id_user'";
+        $update_pass = ", password = '$pass_hash'";
+        $pesan_sukses[] = "Password berhasil diubah";
+    } else {
+        $update_pass = "";
     }
+
+    // Cek apakah foto baru diupload
+    if ($foto_diupload) {
+        $pesan_sukses[] = "Foto profil berhasil diperbarui";
+    }
+
+    // Jika tidak ada yang diubah sama sekali
+    if (empty($pesan_sukses)) {
+        $pesan_sukses[] = "Profil berhasil diperbarui";
+    }
+
+    // Gabungkan pesan dengan enter (untuk ditampilkan)
+    $pesan_final = implode(", ", $pesan_sukses);
+
+    // Susun Query
+    $query = "UPDATE users SET email = '$email', no_hp = '$no_hp' $update_pass $update_foto WHERE id_user = '$id_user'";
 
     // Eksekusi dan set notifikasi
     if (mysqli_query($koneksi, $query)) {
-        $_SESSION['flash_success'] = 'Profil dan Password berhasil diperbarui!';
+        $_SESSION['flash_success'] = $pesan_final;
     } else {
-        $_SESSION['flash_error'] = 'Gagal memperbarui profil: ' . mysqli_error($koneksi);
+        $_SESSION['flash_error'] = 'Gagal memperbarui data: ' . mysqli_error($koneksi);
     }
 
-    // Redirect ke dirinya sendiri biar form nggak ter-submit 2x saat di-refresh
     header("Location: dashboard.php");
     exit;
 }
@@ -50,6 +105,7 @@ $data_user = mysqli_fetch_assoc($query_user);
 $nama_lengkap = $data_user['nama_lengkap'] ?? 'Siswa';
 $role         = $_SESSION['role'] ?? 'siswa';
 $inisial      = strtoupper(substr(trim($nama_lengkap), 0, 1));
+$foto_user    = $data_user['foto'] ?? ''; 
 
 $gedung_aktif = isset($_GET['gedung']) ? $_GET['gedung'] : 'Gedung A';
 $kode_gedung_prefix = strtoupper(trim(str_replace('Gedung', '', $gedung_aktif)));
@@ -58,16 +114,16 @@ $page_title = 'Dashboard Siswa - ' . $gedung_aktif;
 include __DIR__ . '/header.php';
 ?>
 
-<!-- NOTIFIKASI SUKSES / GAGAL (Tema Cream) -->
+<!-- NOTIFIKASI SUKSES / GAGAL (Diberi ID agar bisa dihilangkan JS) -->
 <?php if (isset($_SESSION['flash_success'])): ?>
-    <div style="background: #FDF3E7; color: #B85D19; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #E5A970;">
+    <div id="notif-success" style="background: #FDF3E7; color: #B85D19; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #E5A970; transition: opacity 0.5s ease;">
         <i class="fa-solid fa-circle-check"></i> <?= $_SESSION['flash_success']; ?>
     </div>
     <?php unset($_SESSION['flash_success']); ?>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['flash_error'])): ?>
-    <div style="background: #F9E2DF; color: #B8473E; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #DFA69F;">
+    <div id="notif-error" style="background: #F9E2DF; color: #B8473E; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #DFA69F; transition: opacity 0.5s ease;">
         <i class="fa-solid fa-circle-exclamation"></i> <?= $_SESSION['flash_error']; ?>
     </div>
     <?php unset($_SESSION['flash_error']); ?>
@@ -86,7 +142,7 @@ include __DIR__ . '/header.php';
         <div class="stat-icon"><i class="fa-solid fa-door-open"></i></div>
         <div class="stat-data">
             <h4>Sisa Loker Kosong</h4>
-            <h2>-</h2> <!-- Warna biru dihapus, ikut tema -->
+            <h2>-</h2>
         </div>
     </div>
     <div class="stat-card">
@@ -167,19 +223,25 @@ include __DIR__ . '/header.php';
     </div>
 </div>
 
-<!-- MODAL 2: PROFIL -->
+<!-- MODAL 2: PROFIL (DENGAN FITUR PREVIEW FOTO) -->
 <div class="modal-bg" id="modalProfile">
     <div class="modal-box">
         <h3><i class="fa-solid fa-user-gear"></i> Pengaturan Profil Saya</h3>
         
-        <form action="dashboard.php" method="POST">
+        <form action="dashboard.php" method="POST" enctype="multipart/form-data">
             <div style="text-align: center; margin-bottom: 15px;">
-                <div class="avatar-circle" style="width: 70px; height: 70px; margin: 0 auto 10px; font-size: 24px;">
-                    <?php echo $inisial; ?>
+                <div class="avatar-circle" style="width: 70px; height: 70px; margin: 0 auto 10px; font-size: 24px; overflow: hidden;">
+                    <img id="preview-foto" src="<?= (!empty($foto_user) && file_exists('uploads/' . $foto_user)) ? 'uploads/' . htmlspecialchars($foto_user) : '' ?>" 
+                         style="width:100%; height:100%; object-fit:cover; display: <?= (!empty($foto_user) && file_exists('uploads/' . $foto_user)) ? 'block' : 'none' ?>;">
+                    
+                    <span id="preview-inisial" style="display: <?= (!empty($foto_user) && file_exists('uploads/' . $foto_user)) ? 'none' : 'block' ?>;">
+                        <?php echo $inisial; ?>
+                    </span>
                 </div>
+                
                 <label style="cursor: pointer; font-size: 12px; color: #C85A17; font-weight: 600;">
                     <i class="fa-solid fa-camera"></i> Ubah Foto Profil
-                    <input type="file" name="foto_profil" accept="image/*" style="display: none;">
+                    <input type="file" name="foto_profil" id="foto_profil" accept="image/*" style="display: none;">
                 </label>
             </div>
 
@@ -236,5 +298,51 @@ include __DIR__ . '/header.php';
         </div>
     </div>
 </div>
+
+<!-- SCRIPT UNTUK PREVIEW FOTO & HILANGKAN NOTIFIKASI OTOMATIS -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. Script Preview Foto
+    const inputFoto = document.getElementById('foto_profil');
+    if (inputFoto) {
+        inputFoto.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById('preview-foto');
+                    const previewInisial = document.getElementById('preview-inisial');
+                    
+                    if (previewImg && previewInisial) {
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                        previewInisial.style.display = 'none';
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // 2. Script Hilangkan Notifikasi Otomatis Setelah 3 Detik
+    const notifSuccess = document.getElementById('notif-success');
+    const notifError = document.getElementById('notif-error');
+
+    if (notifSuccess) {
+        setTimeout(function() {
+            notifSuccess.style.opacity = '0'; 
+            setTimeout(() => notifSuccess.remove(), 500); 
+        }, 3000); 
+    }
+
+    if (notifError) {
+        setTimeout(function() {
+            notifError.style.opacity = '0';
+            setTimeout(() => notifError.remove(), 500);
+        }, 3000);
+    }
+});
+</script>
 
 <?php include __DIR__ . '/footer.php'; ?>
