@@ -12,6 +12,28 @@ $page_title = $page_title ?? 'Dashboard';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
+    <!-- TAMBAHAN: Script SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    function konfirmasiLogoutSiswa() {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Anda akan keluar dari sistem LOKIFY!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#E04F16',
+            cancelButtonColor: '#181715', /* DIUBAH: Warna Batal jadi hitam seperti Titip Barang */
+            confirmButtonText: 'Ya, Keluar!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '../login/logout.php';
+            }
+        });
+    }
+    </script>
+    <!-- AKHIR TAMBAHAN -->
+
     <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', 'Roboto', sans-serif; }
     
@@ -221,7 +243,6 @@ $page_title = $page_title ?? 'Dashboard';
         
         <div class="profile-dropdown-container" id="profileDropdownContainer">
             <div class="profile-btn" onclick="toggleDropdown()">
-                <!-- BAGIAN YANG DIUBAH: NAMPILIN FOTO ASLI JIKA ADA -->
                 <div class="avatar-circle">
                     <?php if (!empty($foto_user) && file_exists(__DIR__ . '/uploads/' . $foto_user)): ?>
                         <img src="uploads/<?php echo htmlspecialchars($foto_user); ?>" alt="Profile">
@@ -245,7 +266,7 @@ $page_title = $page_title ?? 'Dashboard';
                 <a href="javascript:void(0);" onclick="openModalProfile()" class="dropdown-item">
                     <i class="fa-solid fa-id-card"></i> Edit Profil
                 </a>
-                <a href="../login/logout.php" class="dropdown-item logout-item">
+                <a href="javascript:void(0);" onclick="konfirmasiLogoutSiswa()" class="dropdown-item logout-item">
                     <i class="fa-solid fa-right-from-bracket"></i> Keluar
                 </a>
             </div>

@@ -168,12 +168,12 @@ $area_polygon_points = round($pad_l, 1) . ',' . $baseline_y . ' ' . $polyline_po
 
             </div>
             
-            <!-- MULAI BAGIAN YANG DITAMBAHKAN: MEMBUNGKUS PROFIL & MENAMBAH TOMBOL LOGOUT -->
+            <!-- BAGIAN YANG DIUBAH: TOMBOL LOGOUT PAKAI SWEETALERT -->
             <div style="display: flex; align-items: center; gap: 15px;">
                 <div class="topbar-profile-circle" title="<?= htmlspecialchars($nama_admin) ?>"><img src="admin-avatar.jpg?v=<?= file_exists('admin-avatar.jpg') ? filemtime('admin-avatar.jpg') : time() ?>" alt="Admin"></div>
-                <a href="../login/logout.php" style="background: #F9E2DF; color: #B8473E; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; border: 1px solid #DFA69F; display: inline-block;" onclick="return confirm('Apakah Anda yakin ingin keluar?')">Logout</a>
+                <a href="javascript:void(0);" style="background: #F9E2DF; color: #B8473E; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; border: 1px solid #DFA69F; display: inline-block;" onclick="konfirmasiLogoutAdmin()">Logout</a>
             </div>
-            <!-- SELESAI BAGIAN YANG DITAMBAHKAN -->
+            <!-- SELESAI BAGIAN YANG DIUBAH -->
 
         </div>
 
@@ -473,7 +473,27 @@ $area_polygon_points = round($pad_l, 1) . ',' . $baseline_y . ' ' . $polyline_po
 
 </div>
 
-
+<!-- TAMBAHAN: SCRIPT SWEETALERT2 UNTUK ADMIN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function konfirmasiLogoutAdmin() {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Anda akan keluar dari sistem Admin!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E04F16',
+        cancelButtonColor: '#181715', /* DIUBAH: Warna Batal jadi hitam seperti Titip Barang */
+        confirmButtonText: 'Ya, Keluar!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '../login/logout.php';
+        }
+    });
+}
+</script>
+<!-- AKHIR TAMBAHAN -->
 
 </body>
 
