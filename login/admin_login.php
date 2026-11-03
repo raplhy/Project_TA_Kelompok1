@@ -24,9 +24,9 @@ unset($_SESSION['form_username']);
     <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
 
-    /* BACKGROUND KREM (Sama seperti Dashboard) */
+    /* BACKGROUND SAMA PERSIS DENGAN LOGIN SISWA */
     body {
-        background-color: #F4EFE6;
+        background-color: #f1f5f9;
         min-height: 100vh;
         display: flex;
         align-items: center;
@@ -34,13 +34,12 @@ unset($_SESSION['form_username']);
         padding: 20px;
     }
 
-    /* Kotak login PUTIH BERSIH */
     .card-login {
         width: 100%;
         max-width: 450px;
-        background: #FFFFFF;
+        background: #ffffff;
         border-radius: 12px;
-        border: 1px solid #E8E3D9;
+        border: 1px solid #e2e8f0;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         overflow: hidden;
         display: flex;
@@ -69,7 +68,7 @@ unset($_SESSION['form_username']);
     .card-header-custom h1 {
         font-size: 18px;
         font-weight: 800;
-        color: #181715; /* Teks Gelap */
+        color: #0f233a; /* Teks Biru Gelap */
         line-height: 1.3;
         letter-spacing: 0.5px;
         text-transform: uppercase;
@@ -79,18 +78,18 @@ unset($_SESSION['form_username']);
         width: 100%;
     }
 
-    .card-header-custom h1 span { color: #E04F16; } /* Aksen Oranye */
+    .card-header-custom h1 span { color: #FF9149; } /* Oranye Terang */
 
     .role-title {
         width: 100%;
         padding: 12px;
-        background: #FAF8F5; /* Krem muda */
-        border-top: 1px solid #E8E3D9;
-        border-bottom: 1px solid #E8E3D9;
+        background: #fff7ed;
+        border-top: 1px solid #fed7aa;
+        border-bottom: 1px solid #fed7aa;
         text-align: center;
         font-size: 13px;
         font-weight: 700;
-        color: #C85A17; /* Coklat Oranye */
+        color: #FF9149;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -103,7 +102,7 @@ unset($_SESSION['form_username']);
     }
 
     .alert-error {
-        background: #F9E2DF; border: 1px solid #DFA69F; color: #B8473E;
+        background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
         padding: 10px; border-radius: 6px; font-size: 12px;
         margin-bottom: 15px; text-align: center;
     }
@@ -112,38 +111,36 @@ unset($_SESSION['form_username']);
     
     .form-group label {
         display: block; font-size: 12px; font-weight: 600;
-        color: #1E1D1B; margin-bottom: 6px;
+        color: #334155; margin-bottom: 6px;
     }
 
     .input-group { position: relative; display: flex; align-items: center; width: 100%; }
     
     .input-group i {
-        position: absolute; left: 12px; color: #9E988E; font-size: 13px;
+        position: absolute; left: 12px; color: #94a3b8; font-size: 13px;
     }
     
     .input-control {
         width: 100%; padding: 10px 12px 10px 35px;
-        font-size: 13px; border: 1px solid #D8D2C7;
+        font-size: 13px; border: 1px solid #cbd5e1;
         border-radius: 6px; outline: none;
-        color: #1E1D1B; background: #FFFFFF;
+        color: #1e293b; background: #f8fafc;
     }
     
-    .input-control:focus { border-color: #E04F16; background: #FFFFFF; }
-    
-    .input-control::placeholder { color: #9E988E; }
+    .input-control:focus { border-color: #FF9149; background: #ffffff; }
 
     .btn-submit {
-        width: 100%; padding: 11px; background: #E04F16; /* Tombol Oranye */
-        color: #FFFFFF; border: none; border-radius: 6px;
-        font-size: 13px; font-weight: 700; cursor: pointer;
+        width: 100%; padding: 11px; background: #FF9149; /* Oranye Terang */
+        color: #ffffff; border: none; border-radius: 6px;
+        font-size: 13px; font-weight: 600; cursor: pointer;
         margin-top: 10px; transition: background 0.2s;
     }
     
-    .btn-submit:hover { background: #C84310; }
+    .btn-submit:hover { opacity: 0.9; }
 
     .card-footer-custom {
         width: 100%; padding: 15px 35px 25px 35px;
-        text-align: center; font-size: 11px; color: #9E988E;
+        text-align: center; font-size: 11px; color: #94a3b8;
     }
     </style>
 </head>
@@ -205,4 +202,4 @@ unset($_SESSION['form_username']);
     </div>
 
 </body>
-</html> 
+</html>
